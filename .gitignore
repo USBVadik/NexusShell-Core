@@ -1,12 +1,28 @@
+# Dependencies
 node_modules/
+
+# Aider
 .aider*
-*.json
+
+# Environment & secrets
 .env
+config.py
+
+# JSON data & keys (covers hero_key.json, history, memes_db, etc.)
+*.json
+
+# Backups & generated
 backups/
+
+# Gemini CLI
 gemini-cli/
+
+# Python
 __pycache__/
 *.pyc
+
+# Logs
 *.log
+
+# Scripts
 run-aider.sh
-*.json
-.env
