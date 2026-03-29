@@ -1,0 +1,20 @@
+[project]
+name = "usbagent-v2-1-stable"
+version = "0.1.0"
+description = "Add your description here"
+requires-python = ">=3.12"
+dependencies = [
+    "beautifulsoup4>=4.14.3",
+    "google-genai>=1.69.0",
+    "httpx>=0.28.1",
+    "pandas>=3.0.1",
+    "pillow>=12.1.1",
+    "pymupdf>=1.27.2.2",
+    "python-dotenv>=1.2.2",
+    "python-telegram-bot>=22.7",
+]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.15.8",
+]
