@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>USBAGENT — Multi-Model AI Orchestration Engine</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: '#7C3AED',
+            brandlight: '#A78BFA',
+            surface: '#0F0F11',
+            card: '#18181B',
+            border: '#27272A',
+          },
+          fontFamily: {
+            sans: ['Inter', 'ui-sans-serif', 'system-ui'],
+            mono: ['JetBrains Mono', 'ui-monospace', 'monospace'],
+          },
+        },
+      },
+    };
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <style>
+    body { background-color: #0F0F11; }
+    .gradient-text {
+      background: linear-gradient(135deg, #A78BFA 0%, #60A5FA 50%, #34D399 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero-glow {
+      background: radial-gradient(ellipse 80% 50% at 50% -10%, rgba(124, 58, 237, 0.25), transparent);
+    }
+    .card-glow:hover {
+      box-shadow: 0 0 0 1px rgba(124, 58, 237, 0.4), 0 8px 40px rgba(124, 58, 237, 0.12);
+      transition: box-shadow 0.3s ease;
+    }
+    .badge-glow {
+      box-shadow: 0 0 12px rgba(124, 58, 237, 0.3);
+    }
+    .noise {
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+    }
+    .grid-bg {
+      background-image: linear-gradient(rgba(124,58,237,0.04) 1px, transparent 1px),
+                        linear-gradient(90deg, rgba(124,58,237,0.04) 1px, transparent 1px);
+      background-size: 48px 48px;
+    }
+    input, textarea {
+      background-color: #18181B;
+      border: 1px solid #27272A;
+      color: #F4F4F5;
+      transition: border-color 0.2s;
+    }
+    input:focus, textarea:focus {
+      outline: none;
+      border-color: #7C3AED;
+      box-shadow: 0 0 0 3px rgba(124,58,237,0.15);
+    }
+    input::placeholder, textarea::placeholder { color: #52525B; }
+  </style>
+</head>
+<body class="font-sans text-zinc-100 antialiased">
+
+  <!-- NAV -->
+  <nav class="fixed top-0 left-0 right-0 z-50 border-b border-border bg-surface/80 backdrop-blur-xl">
+    <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <div class="w-7 h-7 rounded-md bg-brand flex items-center justify-center">
+          <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+          </svg>
+        </div>
+        <span class="font-bold text-lg tracking-tight text-white">USBAGENT</span>
+      </div>
+      <div class="hidden md:flex items-center gap-8 text-sm text-zinc-400">
+        <a href="#technology" class="hover:text-white transition-colors">Technology</a>
+        <a href="#features" class="hover:text-white transition-colors">Features</a>
+        <a href="#contact" class="hover:text-white transition-colors">Contact</a>
+      </div>
+      <a href="#contact" class="hidden md:inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-brand hover:bg-violet-500 text-white text-sm font-medium transition-colors">
+        Request Access
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+        </svg>
+      </a>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="relative min-h-screen flex items-center justify-center overflow-hidden hero-glow grid-bg noise pt-16">
+    <div class="absolute inset-0 pointer-events-none">
+      <div class="absolute top-1/4 left-1/2 -translate-x-1/2 w-[900px] h-[500px] bg-brand/10 rounded-full blur-3xl"></div>
+    </div>
+    <div class="relative z-10 max-w-5xl mx-auto px-6 text-center py-32">
+      <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-brand/40 bg-brand/10 text-brandlight text-xs font-medium mb-8 badge-glow">
+        <span class="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"></span>
+        Now in Private Beta — Powered by Gemini 2.5 Flash
+      </div>
+      <h1 class="text-5xl md:text-7xl font-extrabold tracking-tight leading-tight mb-6">
+        <span class="text-white">USBAGENT:</span><br />
+        <span class="gradient-text">Multi-Model AI<br />Orchestration Engine</span>
+      </h1>
+      <p class="text-xl md:text-2xl text-zinc-400 font-light max-w-3xl mx-auto mb-10 leading-relaxed">
+        Scaling Enterprise intelligence with <span class="text-white font-medium">Gemini 2.5</span> and <span class="text-white font-medium">VEO Cinematic Video</span>. One unified platform for reasoning, memory, and multimodal generation at scale.
+      </p>
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+        <a href="#contact" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl bg-brand hover:bg-violet-500 text-white font-semibold text-base transition-all hover:scale-105 hover:shadow-lg hover:shadow-brand/30">
+          Request Early Access
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+          </svg>
+        </a>
+        <a href="#features" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl border border-border hover:border-zinc-500 text-zinc-300 hover:text-white font-semibold text-base transition-all">
+          Explore Features
+        </a>
+      </div>
+      <!-- Stats -->
+      <div class="mt-20 grid grid-cols-2 md:grid-cols-4 gap-6 border-t border-border pt-12">
+        <div class="text-center">
+          <div class="text-3xl font-bold text-white">2.5M+</div>
+          <div class="text-sm text-zinc-500 mt-1">Token Context Window</div>
+        </div>
+        <div class="text-center">
+          <div class="text-3xl font-bold text-white">&lt;200ms</div>
+          <div class="text-sm text-zinc-500 mt-1">Avg. Response Latency</div>
+        </div>
+        <div class="text-center">
+          <div class="text-3xl font-bold text-white">99.9%</div>
+          <div class="text-sm text-zinc-500 mt-1">Uptime SLA</div>
+        </div>
+        <div class="text-center">
+          <div class="text-3xl font-bold text-white">12+</div>
+          <div class="text-sm text-zinc-500 mt-1">Integrated AI Models</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TECHNOLOGY STACK -->
+  <section id="technology" class="py-28 border-t border-border">
+    <div class="max-w-7xl mx-auto px-6">
+      <div class="text-center mb-16">
+        <p class="text-brand text-sm font-semibold uppercase tracking-widest mb-3">Infrastructure</p>
+        <h2 class="text-4xl md:text-5xl font-bold text-white">Built on World-Class Technology</h2>
+        <p class="text-zinc-400 mt-4 text-lg max-w-2xl mx-auto">Enterprise-grade AI infrastructure powered by the most advanced platforms available.</p>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+        <!-- Google Vertex AI -->
+        <div class="card-glow rounded-2xl border border-border bg-card p-8 flex flex-col gap-5">
+          <div class="w-12 h-12 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
+            <svg class="w-6 h-6 text-blue-400" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+            </svg>
+          </div>
+          <div>
+            <div class="flex items-center gap-2 mb-2">
+              <span class="text-white font-semibold text-lg">Google Vertex AI</span>
+              <span class="px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 text-xs font-medium border border-blue-500/20">Active</span>
+            </div>
+            <p class="text-zinc-400 text-sm leading-relaxed">Gemini 2.5 Flash &amp; Pro via Vertex AI. Full access to Google's most capable multimodal models with enterprise SLAs and data residency controls.</p>
+          </div>
+          <div class="mt-auto pt-4 border-t border-border flex flex-wrap gap-2">
+            <span class="px-2.5 py-1 rounded-md bg-zinc-800 text-zinc-300 text-xs font-mono">gemini-2.5-flash</span>
+            <span class="px-2.5 py-1 rounded-md bg-zinc-800 text-zinc-300 text-xs font-mono">VEO 2.0</span>
+            <span class="px-2.5 py-1 rounded-md bg-zinc-800 text-zinc-300 text-xs font-mono">Imagen 3</span>
+          </div>
+        </div>
+
+        <!-- NVIDIA CUDA -->
+        <div class="card-glow rounded-2xl border border-border bg-card p-8 flex flex-col gap-5">
+          <div class="w-12 h-12 rounded-xl bg-green-500/10 border border-green-500/20 flex items-center justify-center">
+            <svg class="w-6 h-6 text-green-400" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M4 6a2 2 0 012-2h12a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm2 0v12h12V6H6zm2 2h8v2H8V8zm0 4h8v2H8v-2z"/>
+            </svg>
+          </div>
+          <div>
+            <div class="flex items-center gap-2 mb-2">
+              <span class="text-white font-semibold text-lg">NVIDIA CUDA</span>
+              <span class="px-2 py-0.5 rounded-full bg-green-500/10 text-green-400 text-xs font-medium border border-green-500/20">GPU Accelerated</span>
+            </div>
+            <p class="text-zinc-400 text-sm leading-relaxed">CUDA-accelerated inference pipelines for local model execution, embedding generation, and real-time vector similarity search at enterprise scale.</p>
+          </div>
+          <div class="mt-auto pt-4 border-t border-border flex flex-wrap gap-2">
+            <span class="px-2.5 py-1 rounded-md bg-zinc-800 text-zinc-300 text-xs font-mono">CUDA 12.x</span>
+            <span class="px-2.5 py-1 rounded-md bg-zinc-800 text-zinc-300 text-xs font-mono">TensorRT</span>
+            <span class="px-2.5 py-1 rounded-md bg-zinc-800 text-zinc-300 text-xs font-mono">cuDNN</span>
+          </div>
+        </div>
+
+        <!-- ChromaDB -->
+        <div class="card-glow rounded-2xl border border-border bg-card p-8 flex flex-col gap-5">
+          <div class="w-12 h-12 rounded-xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center">
+            <svg class="w-6 h-6 text-violet-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <ellipse cx="12" cy="5" rx="9" ry="3"/>
+              <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/>
+              <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>
+            </svg>
+          </div>
+          <div>
+            <div class="flex items-center gap-2 mb-2">
+              <span class="text-white font-semibold text-lg">ChromaDB</span>
+              <span class="px-2 py-0.5 rounded-full bg-violet-500/10 text-violet-400 text-xs font-medium border border-violet-500/20">Vector Store</span>
+            </div>
+            <p class="text-zinc-400 text-sm leading-relaxed">Persistent vector memory with Deep RAG re-ranking. Semantic search across millions of embeddings with sub-millisecond retrieval and full metadata filtering.</p>
+          </div>
+          <div class="mt-auto pt-4 border-t border-border flex flex-wrap gap-2">
+            <span class="px-2.5 py-1 rounded-md bg-zinc-800 text-zinc-300 text-xs font-mono">Deep RAG</span>
+            <span class="px-2.5 py-1 rounded-md bg-zinc-800 text-zinc-300 text-xs font-mono">Re-ranking</span>
+            <span class="px-2.5 py-1 rounded-md bg-zinc-800 text-zinc-300 text-xs font-mono">HNSW Index</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section id="features" class="py-28 border-t border-border">
+    <div class="max-w-7xl mx-auto px-6">
+      <div class="text-center mb-16">
+        <p class="text-brand text-sm font-semibold uppercase tracking-widest mb-3">Capabilities</p>
+        <h2 class="text-4xl md:text-5xl font-bold text-white">Intelligence at Every Layer</h2>
+        <p class="text-zinc-400 mt-4 text-lg max-w-2xl mx-auto">From persistent memory to cinematic video generation — USBAGENT handles the full AI stack.</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+        <!-- Deep RAG Memory -->
+        <div class="card-glow rounded-2xl border border-border bg-card p-7 flex flex-col gap-4">
+          <div class="w-11 h-11 rounded-xl bg-brand/10 border border-brand/20 flex items-center justify-center">
+            <svg class="w-5 h-5 text-brandlight" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18" />
+            </svg>
+          </div>
+          <div>
+            <h3 class="text-white font-semibold text-lg mb-2">Deep RAG Memory</h3>
+            <p class="text-zinc-400 text-sm leading-relaxed">Persistent semantic memory with multi-stage retrieval and neural re-ranking. The agent remembers context across sessions, projects, and users — with full auditability.</p>
+          </div>
+          <ul class="mt-2 space-y-1.5">
+            <li class="flex items-center gap-2 text-xs text-zinc-400"><span class="w-1 h-1 rounded-full bg-brand"></span>Cross-session context persistence</li>
+            <li class="flex items-center gap-2 text-xs text-zinc-400"><span class="w-1 h-1 rounded-full bg-brand"></span>Neural re-ranking pipeline</li>
+            <li class="flex items-center gap-2 text-xs text-zinc-400"><span class="w-1 h-1 rounded-full bg-brand"></span>Metadata-filtered retrieval</li>
+          </ul>
+        </div>
+
+        <!-- Strategic CoT -->
+        <div class="card-glow rounded-2xl border border-border bg-card p-7 flex flex-col gap-4">
+          <div class="w-11 h-11 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
+            <svg class="w-5 h-5 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+            </svg>
+          </div>
+          <div>
+            <h3 class="text-white font-semibold text-lg mb-2">Strategic Chain-of-Thought</h3>
+            <p class="text-zinc-400 text-sm leading-relaxed">God Mode reasoning engine. Before every response, USBAGENT performs hidden strategic analysis — intent classification, opportunity mapping, and tool selection — for maximally aligned outputs.</p>
+          </div>
+          <ul class="mt-2 space-y-1.5">
+            <li class="flex items-center gap-2 text-xs text-zinc-400"><span class="w-1 h-1 rounded-full bg-blue-400"></span>Intent &amp; opportunity analysis</li>
+            <li class="flex items-center gap-2 text-xs text-zinc-400"><span class="w-1 h-1 rounded-full bg-blue-400"></span>Multi-step reasoning traces</li>
+            <li class="flex items-center gap-2 text-xs text-zinc-400"><span class="w-1 h-1 rounded-full bg-blue-400"></span>Autonomous tool orchestration</li>
+          </ul>
+        </div>
+
+        <!-- Vision & Video Generation -->
+        <div class="card-glow rounded-2xl border border-border bg-card p-7 flex flex-col gap-4">
+          <div class="w-11 h-11 rounded-xl bg-pink-500/10 border border-pink-500/20 flex items-center justify-center">
+            <svg class="w-5 h-5 text-pink-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15 10l4.553-2.069A1 1 0 0121 8.82v6.36a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+            </svg>
+          </div>
+          <div>
+            <h3 class="text-white font-semibold text-lg mb-2">Vision &amp; Video Generation</h3>
+            <p class="text-zinc-400 text-sm leading-relaxed">Cinematic video synthesis via VEO 2.0 with Start/End Frame Control. Generate, analyze, and transform visual content at production quality — directly from natural language prompts.</p>
+          </div>
+          <ul class="mt-2 space-y-1.5">
+            <li class="flex items-center gap-2 text-xs text-zinc-400"><span class="w-1 h-1 rounded-full bg-pink-400"></span>VEO 2.0 cinematic video</li>
+            <li class="flex items-center gap-2 text-xs text-zinc-400"><span class="w-1 h-1 rounded-full bg-pink-400"></span>Start/End frame control</li>
+            <li class="flex items-center gap-2 text-xs text-zinc-400"><span class="w-1 h-1 rounded-full bg-pink-400"></span>Multimodal vision analysis</li>
+          </ul>
+        </div>
+
+        <!-- Trend Intelligence -->
+        <div class="card-glow rounded-2xl border border-border bg-card p-7 flex flex-col gap-4">
+          <div class="w-11 h-11 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center">
+            <svg class="w-5 h-5 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+            </svg>
+          </div>
+          <div>
+            <h3 class="text-white font-semibold text-lg mb-2">Autonomous Trend Hunter</h3>
+            <p class="text-zinc-400 text-sm leading-relaxed">Background intelligence worker that continuously scans market signals, emerging technologies, and competitive landscapes — surfacing actionable insights every 12 hours.</p>
+          </div>
+          <ul class="mt-2 space-y-1.5">
+            <li class="flex items-center gap-2 text-xs text-zinc-400"><span class="w-1 h-1 rounded-full bg-amber-400"></span>12-hour autonomous scan cycles</li>
+            <li class="flex items-center gap-2 text-xs text-zinc-400"><span class="w-1 h-1 rounded-full bg-amber-400"></span>Signal aggregation &amp; scoring</li>
+            <li class="flex items-center gap-2 text-xs text-zinc-400"><span class="w-1 h-1 rounded-full bg-amber-400"></span>Competitive intelligence reports</li>
+          </ul>
+        </div>
+
+        <!-- OSINT Module -->
+        <div class="card-glow rounded-2xl border border-border bg-card p-7 flex flex-col gap-4">
+          <div class="w-11 h-11 rounded-xl bg-teal-500/10 border border-teal-500/20 flex items-center justify-center">
+            <svg class="w-5 h-5 text-teal-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
+          <div>
+            <h3 class="text-white font-semibold text-lg mb-2">OSINT Intelligence Module</h3>
+            <p class="text-zinc-400 text-sm leading-relaxed">Open-source intelligence gathering with social footprint analysis, crypto trace capabilities, and cross-platform identity resolution for enterprise due diligence workflows.</p>
+          </div>
+          <ul class="mt-2 space-y-1.5">
+            <li class="flex items-center gap-2 text-xs text-zinc-400"><span class="w-1 h-1 rounded-full bg-teal-400"></span>Social footprint mapping</li>
+            <li class="flex items-center gap-2 text-xs text-zinc-400"><span class="w-1 h-1 rounded-full bg-teal-400"></span>Crypto trace analysis</li>
+            <li class="flex items-center gap-2 text-xs text-zinc-400"><span class="w-1 h-1 rounded-full bg-teal-400"></span>Cross-platform identity graph</li>
+          </ul>
+        </div>
+
+        <!-- Enterprise API -->
+        <div class="card-glow rounded-2xl border border-border bg-card p-7 flex flex-col gap-4">
+          <div class="w-11 h-11 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
+            <svg class="w-5 h-5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+          </div>
+          <div>
+            <h3 class="text-white font-semibold text-lg mb-2">OpenAI-Compatible API</h3>
+            <p class="text-zinc-400 text-sm leading-relaxed">Drop-in replacement for OpenAI's API. Migrate existing integrations in minutes with full streaming support, function calling, and vision capabilities — no code changes required.</p>
+          </div>
+          <ul class="mt-2 space-y-1.5">
+            <li class="flex items-center gap-2 text-xs text-zinc-400"><span class="w-1 h-1 rounded-full bg-indigo-400"></span>OpenAI API compatibility</li>
+            <li class="flex items-center gap-2 text-xs text-zinc-400"><span class="w-1 h-1 rounded-full bg-indigo-400"></span>Streaming &amp; function calling</li>
+            <li class="flex items-center gap-2 text-xs text-zinc-400"><span class="w-1 h-1 rounded-full bg-indigo-400"></span>MCP protocol support</li>
+          </ul>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- SOCIAL PROOF / TRUST BAR -->
+  <section class="py-16 border-t border-border bg-card/40">
+    <div class="max-w-7xl mx-auto px-6 text-center">
+      <p class="text-zinc-500 text-sm uppercase tracking-widest font-medium mb-10">Powered by &amp; Integrated with</p>
+      <div class="flex flex-wrap items-center justify-center gap-10 md:gap-16">
+        <div class="flex items-center gap-2 text-zinc-400 hover:text-white transition-colors">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/></svg>
+          <span class="font-semibold text-sm">Google Cloud</span>
+        </div>
+        <div class="flex items-center gap-2 text-zinc-400 hover:text-white transition-colors">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M4 6a2 2 0 012-2h12a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V6z"/></svg>
+          <span class="font-semibold text-sm">NVIDIA Inception</span>
+        </div>
+        <div class="flex items-center gap-2 text-zinc-400 hover:text-white transition-colors">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+          <span class="font-semibold text-sm">Vertex AI</span>
+        </div>
+        <div class="flex items-center gap-2 text-zinc-400 hover:text-white transition-colors">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+          <span class="font-semibold text-sm">ChromaDB</span>
+        </div>
+        <div class="flex items-center gap-2 text-zinc-400 hover:text-white transition-colors">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18"/></svg>
+          <span class="font-semibold text-sm">AWS Activate</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTACT / REQUEST ACCESS -->
+  <section id="contact" class="py-28 border-t border-border">
+    <div class="max-w-2xl mx-auto px-6">
+      <div class="text-center mb-12">
+        <p class="text-brand text-sm font-semibold uppercase tracking-widest mb-3">Early Access</p>
+        <h2 class="text-4xl md:text-5xl font-bold text-white">Request Access</h2>
+        <p class="text-zinc-400 mt-4 text-lg">Join our private beta. We're onboarding select enterprise teams and research partners.</p>
+      </div>
+
+      <div class="rounded-2xl border border-border bg-card p-8 md:p-10">
+        <form class="space-y-5" onsubmit="handleSubmit(event)">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <div>
+              <label class="block text-sm font-medium text-zinc-300 mb-2">First Name</label>
+              <input type="text" placeholder="Alex" class="w-full px-4 py-3 rounded-xl text-sm" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-zinc-300 mb-2">Last Name</label>
+              <input type="text" placeholder="Johnson" class="w-full px-4 py-3 rounded-xl text-sm" />
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-zinc-300 mb-2">Work Email</label>
+            <input type="email" placeholder="alex@company.com" class="w-full px-4 py-3 rounded-xl text-sm" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-zinc-300 mb-2">Company / Organization</label>
+            <input type="text" placeholder="Acme Corp" class="w-full px-4 py-3 rounded-xl text-sm" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-zinc-300 mb-2">Use Case</label>
+            <select class="w-full px-4 py-3 rounded-xl text-sm bg-card border border-border text-zinc-300 focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/20">
+              <option value="" class="bg-zinc-900">Select your primary use case</option>
+              <option value="enterprise" class="bg-zinc-900">Enterprise AI Automation</option>
+              <option value="research" class="bg-zinc-900">AI Research &amp; Development</option>
+              <option value="video" class="bg-zinc-900">Cinematic Video Generation</option>
+              <option value="osint" class="bg-zinc-900">Intelligence &amp; OSINT</option>
+              <option value="rag" class="bg-zinc-900">RAG &amp; Knowledge Management</option>
+              <option value="other" class="bg-zinc-900">Other</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-zinc-300 mb-2">Tell us about your project <span class="text-zinc-500 font-normal">(optional)</span></label>
+            <textarea rows="4" placeholder="Describe your use case, scale requirements, or any specific capabilities you need..." class="w-full px-4 py-3 rounded-xl text-sm resize-none"></textarea>
+          </div>
+          <button type="submit" id="submit-btn" class="w-full py-4 rounded-xl bg-brand hover:bg-violet-500 text-white font-semibold text-base transition-all hover:scale-[1.02] hover:shadow-lg hover:shadow-brand/30 flex items-center justify-center gap-2">
+            <span id="btn-text">Submit Access Request</span>
+            <svg id="btn-icon" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+            </svg>
+          </button>
+          <p class="text-center text-xs text-zinc-500">We respect your privacy. No spam, ever. Typical response within 48 hours.</p>
+        </form>
+        <div id="success-msg" class="hidden text-center py-8">
+          <div class="w-14 h-14 rounded-full bg-green-500/10 border border-green-500/20 flex items-center justify-center mx-auto mb-4">
+            <svg class="w-7 h-7 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <h3 class="text-white font-semibold text-xl mb-2">Request Received!</h3>
+          <p class="text-zinc-400 text-sm">Thank you for your interest in USBAGENT. Our team will be in touch within 48 hours.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="border-t border-border py-12">
+    <div class="max-w-7xl mx-auto px-6">
+      <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+        <div class="flex items-center gap-2">
+          <div class="w-7 h-7 rounded-md bg-brand flex items-center justify-center">
+            <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+          </div>
+          <span class="font-bold text-white">USBAGENT</span>
+          <span class="text-zinc-600 text-sm ml-2">v4.3 Stable</span>
+        </div>
+        <div class="flex items-center gap-6 text-sm text-zinc-500">
+          <a href="#" class="hover:text-white transition-colors">Privacy Policy</a>
+          <a href="#" class="hover:text-white transition-colors">Terms of Service</a>
+          <a href="#contact" class="hover:text-white transition-colors">Contact</a>
+        </div>
+        <p class="text-zinc-600 text-sm">© 2026 USBAGENT. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    function handleSubmit(e) {
+      e.preventDefault();
+      const btn = document.getElementById('submit-btn');
+      const btnText = document.getElementById('btn-text');
+      const btnIcon = document.getElementById('btn-icon');
+      btnText.textContent = 'Submitting...';
+      btn.disabled = true;
+      btn.classList.add('opacity-70', 'cursor-not-allowed');
+      setTimeout(() => {
+        document.querySelector('form').classList.add('hidden');
+        document.getElementById('success-msg').classList.remove('hidden');
+      }, 1200);
+    }
+
+    // Smooth reveal on scroll
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.style.opacity = '1';
+          entry.target.style.transform = 'translateY(0)';
+        }
+      });
+    }, { threshold: 0.1 });
+
+    document.querySelectorAll('section').forEach(section => {
+      section.style.opacity = '0';
+      section.style.transform = 'translateY(20px)';
+      section.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+      observer.observe(section);
+    });
+  </script>
+</body>
+</html>
