@@ -1,0 +1,1 @@
+interpreter: '/root/.venv/bin/python'  // НЕ 'python' или 'uv run'
