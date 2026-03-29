@@ -65,6 +65,129 @@
       box-shadow: 0 0 0 3px rgba(124,58,237,0.15);
     }
     input::placeholder, textarea::placeholder { color: #52525B; }
+
+    /* ── Blueprint cards ── */
+    .blueprint-card {
+      position: relative;
+      border-radius: 1.25rem;
+      overflow: hidden;
+      border: 1px solid rgba(124, 58, 237, 0.25);
+      background: rgba(24, 24, 27, 0.6);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      transition: box-shadow 0.35s ease, border-color 0.35s ease, transform 0.35s ease;
+    }
+    .blueprint-card:hover {
+      border-color: rgba(124, 58, 237, 0.65);
+      box-shadow:
+        0 0 0 1px rgba(124, 58, 237, 0.5),
+        0 0 40px rgba(124, 58, 237, 0.18),
+        0 20px 60px rgba(0, 0, 0, 0.5);
+      transform: translateY(-4px);
+    }
+    .blueprint-img-wrap {
+      overflow: hidden;
+      position: relative;
+    }
+    .blueprint-img-wrap::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, transparent 55%, rgba(15,15,17,0.95) 100%);
+      pointer-events: none;
+    }
+    .blueprint-img-wrap img {
+      width: 100%;
+      display: block;
+      transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+    .blueprint-card:hover .blueprint-img-wrap img {
+      transform: scale(1.06);
+    }
+    .blueprint-scan-line {
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, rgba(124,58,237,0.8), transparent);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      animation: none;
+    }
+    .blueprint-card:hover .blueprint-scan-line {
+      opacity: 1;
+      animation: scan 1.8s linear infinite;
+    }
+    @keyframes scan {
+      0%   { top: 0; }
+      100% { top: 100%; }
+    }
+    .blueprint-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.375rem;
+      padding: 0.25rem 0.625rem;
+      border-radius: 9999px;
+      font-size: 0.65rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      border: 1px solid rgba(124,58,237,0.3);
+      background: rgba(124,58,237,0.1);
+      color: #A78BFA;
+    }
+    .view-details-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      width: 100%;
+      padding: 0.75rem 1.25rem;
+      border-radius: 0.75rem;
+      border: 1px solid rgba(124,58,237,0.35);
+      background: rgba(124,58,237,0.08);
+      color: #A78BFA;
+      font-size: 0.8125rem;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+      cursor: pointer;
+      transition: background 0.25s ease, border-color 0.25s ease, color 0.25s ease, box-shadow 0.25s ease;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .view-details-btn:hover {
+      background: rgba(124,58,237,0.22);
+      border-color: rgba(124,58,237,0.7);
+      color: #fff;
+      box-shadow: 0 0 18px rgba(124,58,237,0.25);
+    }
+
+    /* ── Blueprint section glow bg ── */
+    .blueprints-glow {
+      background: radial-gradient(ellipse 70% 40% at 50% 50%, rgba(124,58,237,0.07), transparent);
+    }
+
+    /* ── PDF download button ── */
+    .pdf-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.625rem 1.25rem;
+      border-radius: 0.75rem;
+      border: 1px solid rgba(124,58,237,0.4);
+      background: rgba(124,58,237,0.1);
+      color: #A78BFA;
+      font-size: 0.8125rem;
+      font-weight: 600;
+      text-decoration: none;
+      transition: background 0.25s ease, border-color 0.25s ease, color 0.25s ease, box-shadow 0.25s ease;
+      white-space: nowrap;
+    }
+    .pdf-btn:hover {
+      background: rgba(124,58,237,0.25);
+      border-color: rgba(124,58,237,0.75);
+      color: #fff;
+      box-shadow: 0 0 20px rgba(124,58,237,0.3);
+    }
   </style>
 </head>
 <body class="font-sans text-zinc-100 antialiased">
@@ -83,6 +206,7 @@
       <div class="hidden md:flex items-center gap-8 text-sm text-zinc-400">
         <a href="#technology" class="hover:text-white transition-colors">Technology</a>
         <a href="#features" class="hover:text-white transition-colors">Features</a>
+        <a href="#blueprints" class="hover:text-white transition-colors">Blueprints</a>
         <a href="#contact" class="hover:text-white transition-colors">Contact</a>
       </div>
       <a href="#contact" class="hidden md:inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-brand hover:bg-violet-500 text-white text-sm font-medium transition-colors">
@@ -346,6 +470,195 @@
     </div>
   </section>
 
+  <!-- ══════════════════════════════════════════════
+       SYSTEM BLUEPRINTS
+  ══════════════════════════════════════════════ -->
+  <section id="blueprints" class="py-28 border-t border-border blueprints-glow relative overflow-hidden">
+
+    <!-- subtle grid overlay -->
+    <div class="absolute inset-0 grid-bg opacity-60 pointer-events-none"></div>
+    <!-- corner accent glows -->
+    <div class="absolute -top-32 -left-32 w-96 h-96 bg-brand/10 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="absolute -bottom-32 -right-32 w-96 h-96 bg-blue-500/8 rounded-full blur-3xl pointer-events-none"></div>
+
+    <div class="relative z-10 max-w-7xl mx-auto px-6">
+
+      <!-- Header -->
+      <div class="text-center mb-16">
+        <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-brand/40 bg-brand/10 text-brandlight text-xs font-mono font-semibold mb-5 badge-glow tracking-widest uppercase">
+          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+          v4.9.2 — Classified Architecture
+        </div>
+        <h2 class="text-4xl md:text-5xl font-bold text-white mb-4">System Blueprints</h2>
+        <p class="text-zinc-400 text-lg max-w-2xl mx-auto leading-relaxed">
+          Internal architecture diagrams extracted from the engineering pitch deck. Explore the core subsystems powering USBAGENT at scale.
+        </p>
+      </div>
+
+      <!-- Blueprint Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-7">
+
+        <!-- Card 1 — System Architecture -->
+        <div class="blueprint-card flex flex-col">
+          <div class="blueprint-scan-line"></div>
+
+          <!-- top meta bar -->
+          <div class="flex items-center justify-between px-5 py-3.5 border-b border-white/5">
+            <div class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
+              <span class="text-xs font-mono text-zinc-500 tracking-widest uppercase">ARCH-01</span>
+            </div>
+            <span class="blueprint-tag">
+              <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
+              System Architecture
+            </span>
+          </div>
+
+          <!-- image -->
+          <div class="blueprint-img-wrap">
+            <img src="arch.png" alt="System Architecture Diagram" loading="lazy" />
+          </div>
+
+          <!-- footer -->
+          <div class="p-5 flex flex-col gap-4 mt-auto">
+            <div>
+              <h3 class="text-white font-semibold text-base mb-1">Core Orchestration Layer</h3>
+              <p class="text-zinc-500 text-xs leading-relaxed">Full-stack architecture overview: model routing, tool dispatch, memory bus, and API gateway topology.</p>
+            </div>
+            <button class="view-details-btn" onclick="showBlueprintModal('arch')">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+              </svg>
+              View Technical Details
+            </button>
+          </div>
+        </div>
+
+        <!-- Card 2 — Chain-of-Thought Engine -->
+        <div class="blueprint-card flex flex-col">
+          <div class="blueprint-scan-line"></div>
+
+          <div class="flex items-center justify-between px-5 py-3.5 border-b border-white/5">
+            <div class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-blue-400 animate-pulse"></span>
+              <span class="text-xs font-mono text-zinc-500 tracking-widest uppercase">COT-02</span>
+            </div>
+            <span class="blueprint-tag" style="border-color:rgba(96,165,250,0.3);background:rgba(96,165,250,0.08);color:#93C5FD;">
+              <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+              Reasoning Engine
+            </span>
+          </div>
+
+          <div class="blueprint-img-wrap">
+            <img src="cot.png" alt="Chain-of-Thought Reasoning Diagram" loading="lazy" />
+          </div>
+
+          <div class="p-5 flex flex-col gap-4 mt-auto">
+            <div>
+              <h3 class="text-white font-semibold text-base mb-1">Chain-of-Thought Pipeline</h3>
+              <p class="text-zinc-500 text-xs leading-relaxed">Step-by-step reasoning trace: intent classification → opportunity mapping → tool selection → response synthesis.</p>
+            </div>
+            <button class="view-details-btn" style="border-color:rgba(96,165,250,0.35);background:rgba(96,165,250,0.08);color:#93C5FD;" onmouseover="this.style.background='rgba(96,165,250,0.22)';this.style.borderColor='rgba(96,165,250,0.7)';this.style.color='#fff';" onmouseout="this.style.background='rgba(96,165,250,0.08)';this.style.borderColor='rgba(96,165,250,0.35)';this.style.color='#93C5FD';" onclick="showBlueprintModal('cot')">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+              </svg>
+              View Technical Details
+            </button>
+          </div>
+        </div>
+
+        <!-- Card 3 — RAG Memory System -->
+        <div class="blueprint-card flex flex-col">
+          <div class="blueprint-scan-line"></div>
+
+          <div class="flex items-center justify-between px-5 py-3.5 border-b border-white/5">
+            <div class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-violet-400 animate-pulse"></span>
+              <span class="text-xs font-mono text-zinc-500 tracking-widest uppercase">RAG-03</span>
+            </div>
+            <span class="blueprint-tag" style="border-color:rgba(167,139,250,0.3);background:rgba(167,139,250,0.08);color:#C4B5FD;">
+              <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+              Memory System
+            </span>
+          </div>
+
+          <div class="blueprint-img-wrap">
+            <img src="rag.png" alt="RAG Memory System Diagram" loading="lazy" />
+          </div>
+
+          <div class="p-5 flex flex-col gap-4 mt-auto">
+            <div>
+              <h3 class="text-white font-semibold text-base mb-1">Deep RAG Memory Graph</h3>
+              <p class="text-zinc-500 text-xs leading-relaxed">Vector store topology, embedding pipeline, HNSW index structure, and neural re-ranking flow for persistent semantic memory.</p>
+            </div>
+            <button class="view-details-btn" style="border-color:rgba(167,139,250,0.35);background:rgba(167,139,250,0.08);color:#C4B5FD;" onmouseover="this.style.background='rgba(167,139,250,0.22)';this.style.borderColor='rgba(167,139,250,0.7)';this.style.color='#fff';" onmouseout="this.style.background='rgba(167,139,250,0.08)';this.style.borderColor='rgba(167,139,250,0.35)';this.style.color='#C4B5FD';" onclick="showBlueprintModal('rag')">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+              </svg>
+              View Technical Details
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Bottom CTA row -->
+      <div class="mt-12 flex flex-col sm:flex-row items-center justify-center gap-4">
+        <a href="NexusShell-Core_compressed.pdf" download class="inline-flex items-center gap-2.5 px-6 py-3.5 rounded-xl bg-brand hover:bg-violet-500 text-white font-semibold text-sm transition-all hover:scale-105 hover:shadow-lg hover:shadow-brand/30">
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+          Download Full Technical PDF
+        </a>
+        <a href="#contact" class="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl border border-border hover:border-zinc-500 text-zinc-300 hover:text-white font-semibold text-sm transition-all">
+          Request Architecture Briefing
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+          </svg>
+        </a>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Blueprint Lightbox Modal -->
+  <div id="blueprint-modal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 hidden" onclick="closeBlueprintModal(event)">
+    <div class="absolute inset-0 bg-black/80 backdrop-blur-md"></div>
+    <div class="relative z-10 max-w-5xl w-full rounded-2xl border border-brand/30 bg-zinc-900/95 backdrop-blur-xl overflow-hidden shadow-2xl shadow-brand/20">
+      <!-- modal header -->
+      <div class="flex items-center justify-between px-6 py-4 border-b border-white/5">
+        <div class="flex items-center gap-3">
+          <div class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></div>
+          <span id="modal-label" class="text-xs font-mono text-zinc-400 tracking-widest uppercase">ARCH-01 — System Architecture</span>
+        </div>
+        <button onclick="closeBlueprintModal(null, true)" class="w-8 h-8 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors text-zinc-400 hover:text-white">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      <!-- modal image -->
+      <div class="p-4 md:p-6">
+        <img id="modal-img" src="" alt="" class="w-full rounded-xl border border-white/5" />
+      </div>
+      <!-- modal footer -->
+      <div class="px-6 pb-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <p id="modal-desc" class="text-zinc-400 text-sm leading-relaxed max-w-xl"></p>
+        <a href="NexusShell-Core_compressed.pdf" download class="shrink-0 inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-brand hover:bg-violet-500 text-white text-sm font-semibold transition-all">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+          Full PDF
+        </a>
+      </div>
+    </div>
+  </div>
+
   <!-- SOCIAL PROOF / TRUST BAR -->
   <section class="py-16 border-t border-border bg-card/40">
     <div class="max-w-7xl mx-auto px-6 text-center">
@@ -452,12 +765,19 @@
             </svg>
           </div>
           <span class="font-bold text-white">USBAGENT</span>
-          <span class="text-zinc-600 text-sm ml-2">v4.3 Stable</span>
+          <span class="text-zinc-600 text-sm ml-2">v4.9.2 Stable</span>
         </div>
-        <div class="flex items-center gap-6 text-sm text-zinc-500">
+        <div class="flex flex-wrap items-center justify-center gap-5 text-sm text-zinc-500">
           <a href="#" class="hover:text-white transition-colors">Privacy Policy</a>
           <a href="#" class="hover:text-white transition-colors">Terms of Service</a>
           <a href="#contact" class="hover:text-white transition-colors">Contact</a>
+          <!-- PDF Download Button in footer -->
+          <a href="NexusShell-Core_compressed.pdf" download class="pdf-btn">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            Download Full Technical PDF
+          </a>
         </div>
         <p class="text-zinc-600 text-sm">© 2026 USBAGENT. All rights reserved.</p>
       </div>
@@ -465,11 +785,11 @@
   </footer>
 
   <script>
+    /* ── Form submit ── */
     function handleSubmit(e) {
       e.preventDefault();
       const btn = document.getElementById('submit-btn');
       const btnText = document.getElementById('btn-text');
-      const btnIcon = document.getElementById('btn-icon');
       btnText.textContent = 'Submitting...';
       btn.disabled = true;
       btn.classList.add('opacity-70', 'cursor-not-allowed');
@@ -479,7 +799,52 @@
       }, 1200);
     }
 
-    // Smooth reveal on scroll
+    /* ── Blueprint modal ── */
+    const blueprintData = {
+      arch: {
+        label: 'ARCH-01 — Core Orchestration Layer',
+        src: 'arch.png',
+        alt: 'System Architecture Diagram',
+        desc: 'Full-stack architecture overview: model routing, tool dispatch, memory bus, and API gateway topology. Shows how all subsystems interconnect within the USBAGENT orchestration engine.',
+      },
+      cot: {
+        label: 'COT-02 — Chain-of-Thought Pipeline',
+        src: 'cot.png',
+        alt: 'Chain-of-Thought Reasoning Diagram',
+        desc: 'Step-by-step reasoning trace: intent classification → opportunity mapping → tool selection → response synthesis. Illustrates the God Mode hidden reasoning layer active on every request.',
+      },
+      rag: {
+        label: 'RAG-03 — Deep RAG Memory Graph',
+        src: 'rag.png',
+        alt: 'RAG Memory System Diagram',
+        desc: 'Vector store topology, embedding pipeline, HNSW index structure, and neural re-ranking flow for persistent semantic memory across sessions, users, and projects.',
+      },
+    };
+
+    function showBlueprintModal(key) {
+      const data = blueprintData[key];
+      if (!data) return;
+      document.getElementById('modal-label').textContent = data.label;
+      document.getElementById('modal-img').src = data.src;
+      document.getElementById('modal-img').alt = data.alt;
+      document.getElementById('modal-desc').textContent = data.desc;
+      const modal = document.getElementById('blueprint-modal');
+      modal.classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeBlueprintModal(event, force) {
+      if (force || (event && event.target === document.getElementById('blueprint-modal'))) {
+        document.getElementById('blueprint-modal').classList.add('hidden');
+        document.body.style.overflow = '';
+      }
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeBlueprintModal(null, true);
+    });
+
+    /* ── Scroll reveal ── */
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {

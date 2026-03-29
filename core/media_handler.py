@@ -104,7 +104,7 @@ async def extract_media(update: Update, context: ContextTypes.DEFAULT_TYPE) -> M
                 media_logger.info("Detected image document")
             else:
                 doc_bytes = await _download_file(target_msg.document.file_id, context)
-                doc_text = await process_document(doc_bytes, target_msg.document.file_name)
+                doc_text = await process_document(doc_bytes, target_msg.document.mime_type, target_msg.document.file_name)
                 media.text_addition = f'[ДОКУМЕНТ: {target_msg.document.file_name}]\n{doc_text}'
                 media_logger.info(f"Processed document: {target_msg.document.file_name}")
 
