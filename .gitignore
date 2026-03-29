@@ -1,0 +1,12 @@
+node_modules/
+.aider*
+*.json
+.env
+backups/
+gemini-cli/
+__pycache__/
+*.pyc
+*.log
+run-aider.sh
+*.json
+.env

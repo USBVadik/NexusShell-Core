@@ -1,0 +1,77 @@
+import asyncio, os, uuid, time, io
+from google.genai import types
+from core.brain import client, _on_task_done
+from PIL import Image
+
+PROMPT_PRESETS = {
+    'default': 'Professional photo retouch. Natural skin pores, fine hair, micro-details, sharp 8k focus. Photorealistic, organic 35mm film scan style.',
+    'portrait': 'Portrait restoration. Natural skin pores, subtle texture, fine facial hair, natural eye iris texture. Candid documentary photography style.',
+    'bw': 'B&W film restoration. Kodak Tri-X style fine grain, natural halftone texture. Henri Cartier-Bresson aesthetic.',
+    'landscape': 'Landscape enhancement. Natural material textures: concrete grain, brick detail, leaf venation. Large format film style.'
+}
+
+async def enhance_image(img_path: str, factor: int = 2, mode: str = 'balanced') -> str:
+    try:
+        with open(img_path, 'rb') as f:
+            data = f.read()
+            
+        # --- ПРОВЕРКА ЛИМИТА 17MP (960x1280 x4 = 19.6MP -> ERROR) ---
+        img = Image.open(io.BytesIO(data))
+        w, h = img.size
+        target_pixels = (w * factor) * (h * factor)
+        
+        # Если превышаем 17 млн пикселей, уменьшаем исходник до безопасного размера
+        if target_pixels > 16500000: # Берем с запасом
+            print(f'[UPSCALE] Image too large for x{factor}. Downscaling input...')
+            scale_ratio = (16500000 / (factor**2 * w * h))**0.5
+            new_w, new_h = int(w * scale_ratio), int(h * scale_ratio)
+            img = img.resize((new_w, new_h), Image.Resampling.LANCZOS)
+            output = io.BytesIO()
+            img.save(output, format='JPEG', quality=98)
+            data = output.getvalue()
+            print(f'[UPSCALE] Resized input to {new_w}x{new_h}')
+
+        # --- ШАГ 1: UPSCALE (BASE) ---
+        def _step1():
+            image = types.Image(image_bytes=bytes(data), mime_type='image/jpeg')
+            str_factor = f'x{factor}' if factor in [2, 4] else 'x2'
+            config = types.UpscaleImageConfig(outputMimeType='image/jpeg', outputCompressionQuality=95)
+            
+            res = client.models.upscale_image(
+                model='imagen-4.0-upscale-preview',
+                image=image,
+                upscale_factor=str_factor,
+                config=config
+            )
+            return res.generated_images[0].image.image_bytes if res.generated_images else None
+
+        upscaled_data = await asyncio.to_thread(_step1)
+        if not upscaled_data: return 'FAILED_STEP_1'
+
+        # --- ШАГ 2: GENERATIVE ENHANCE ---
+        if mode == 'creative':
+            print('[UPSCALE] Phase 2: Generative Detail Enhancement...')
+            enhance_prompt = PROMPT_PRESETS.get('default') 
+            
+            res = await client.aio.models.generate_content(
+                model='gemini-2.5-flash-image',
+                contents=[
+                    types.Part.from_bytes(data=upscaled_data, mime_type='image/jpeg'),
+                    types.Part.from_text(text=enhance_prompt)
+                ]
+            )
+            
+            if res.candidates and res.candidates[0].content.parts:
+                for part in res.candidates[0].content.parts:
+                    if part.inline_data:
+                        upscaled_data = part.inline_data.data
+                        break
+
+        # --- СОХРАНЕНИЕ ---
+        out_path = f'/tmp/up_{uuid.uuid4().hex}.jpg'
+        with open(out_path, 'wb') as f:
+            f.write(upscaled_data)
+        return out_path
+        
+    except Exception as e:
+        return f'EXCEPTION_{str(e)}'
