@@ -1,14 +1,17 @@
 """
-brain.py — NexusShell Core: ядро генерации ответов USBAGENT v4.8.4
+brain.py — NexusShell Core: ядро генерации ответов USBAGENT v4.8.5
 
-Ключевые улучшения:
+Ключевые улучшения v4.8.5:
+- Rerank bypass: если кандидатов ≤ RERANK_BYPASS_THRESHOLD — пропускаем API-вызов
+- distill_and_save_memory: дебаунс 30s чтобы не давить на квоту после каждого сообщения
+- Retry: MAX_RETRIES 4→3, MAX_DELAY 30s→15s — быстрее падаем, не зависаем
 - Синглтон NexusShellClientManager с retry-логикой (exponential backoff)
 - Атомарные записи истории через asyncio.Lock
 - Чёткое разделение: загрузка/сохранение истории, ChromaDB, стриминг
 - Lazy-init ChromaDB с авто-восстановлением при schema-mismatch
 - Публичные алиасы/геттеры для ChromaDB-объектов (обратная совместимость)
 - Memory 3.0: Deep RAG с семантическим ре-ранкингом через NexusShell Core
-- CHARACTER TUNE v4.8.4: Бро-режим, лояльность к Боссу, грантовый приоритет
+- CHARACTER TUNE v4.8.5: Бро-режим, лояльность к Боссу, грантовый приоритет
 """
 
 import json
@@ -39,15 +42,18 @@ class NexusShellClientManager:
     """
     Синглтон-менеджер NexusShell Core клиента.
     Предоставляет клиент с автоматическим retry при 429/503.
+
+    v4.8.5: MAX_RETRIES снижен 4→3, MAX_DELAY снижен 30s→15s.
+    Это предотвращает зависание на 5-8 минут при rate-limiting.
     """
     _instance: Optional["NexusShellClientManager"] = None
     _client: Optional[genai.Client] = None
     _lock: asyncio.Lock = asyncio.Lock()
 
-    # Retry-параметры
-    MAX_RETRIES: int = 4
-    BASE_DELAY: float = 1.5   # секунды
-    MAX_DELAY: float = 30.0   # секунды
+    # Retry-параметры (v4.8.5: снижены для быстрого фейла)
+    MAX_RETRIES: int = 3       # было 4
+    BASE_DELAY: float = 1.5    # секунды
+    MAX_DELAY: float = 15.0    # было 30.0 секунд
     RETRYABLE_CODES: tuple = (429, 503, 500)
 
     def __new__(cls) -> "NexusShellClientManager":
@@ -342,10 +348,7 @@ def _needs_grounding(query_text: str) -> bool:
 # CoT (Chain-of-Thought) block stripping
 # ---------------------------------------------------------------------------
 
-# Patterns for various CoT / scratchpad / reasoning block formats that
-# models may emit but should never reach the end user.
 _COT_PATTERNS = [
-    # XML-style thinking/reasoning/scratchpad tags (with optional attributes)
     re.compile(r'<thinking\b[^>]*>.*?</thinking>', re.DOTALL | re.IGNORECASE),
     re.compile(r'<reasoning\b[^>]*>.*?</reasoning>', re.DOTALL | re.IGNORECASE),
     re.compile(r'<scratchpad\b[^>]*>.*?</scratchpad>', re.DOTALL | re.IGNORECASE),
@@ -355,16 +358,13 @@ _COT_PATTERNS = [
     re.compile(r'<cot\b[^>]*>.*?</cot>', re.DOTALL | re.IGNORECASE),
     re.compile(r'<internal\b[^>]*>.*?</internal>', re.DOTALL | re.IGNORECASE),
     re.compile(r'<thought\b[^>]*>.*?</thought>', re.DOTALL | re.IGNORECASE),
-    # Markdown-fenced blocks labelled as thinking/reasoning
     re.compile(r'```thinking\b.*?```', re.DOTALL | re.IGNORECASE),
     re.compile(r'```reasoning\b.*?```', re.DOTALL | re.IGNORECASE),
     re.compile(r'```scratchpad\b.*?```', re.DOTALL | re.IGNORECASE),
-    # [THINKING] ... [/THINKING] bracket style
     re.compile(r'\[THINKING\].*?\[/THINKING\]', re.DOTALL | re.IGNORECASE),
     re.compile(r'\[REASONING\].*?\[/REASONING\]', re.DOTALL | re.IGNORECASE),
     re.compile(r'\[SCRATCHPAD\].*?\[/SCRATCHPAD\]', re.DOTALL | re.IGNORECASE),
     re.compile(r'\[ANALYSIS\].*?\[/ANALYSIS\]', re.DOTALL | re.IGNORECASE),
-    # [SYSTEM: ...] injected reality-check blocks we add ourselves
     re.compile(r'\[SYSTEM:.*?\]', re.DOTALL),
 ]
 
@@ -379,7 +379,6 @@ def _strip_cot_blocks(text: str) -> str:
         return text
     for pattern in _COT_PATTERNS:
         text = pattern.sub('', text)
-    # Collapse excessive blank lines produced by removal
     text = re.sub(r'\n{3,}', '\n\n', text)
     return text.strip()
 
@@ -391,6 +390,10 @@ def _strip_cot_blocks(text: str) -> str:
 _RERANK_TOP_K: int = 15
 _RERANK_TOP_N: int = 5
 
+# v4.8.5: если кандидатов не больше этого порога — пропускаем API-вызов ре-ранкера
+# и возвращаем их напрямую. Экономим 1 API-вызов на каждый запрос с малой памятью.
+_RERANK_BYPASS_THRESHOLD: int = 3
+
 
 async def rerank_memories_with_gemini(
     query: str,
@@ -400,9 +403,21 @@ async def rerank_memories_with_gemini(
     """
     Memory 3.0 Re-ranker: использует NexusShell Core для семантического отбора
     наиболее релевантных, неизбыточных и качественных фактов из кандидатов.
+
+    v4.8.5: Bypass — если кандидатов ≤ _RERANK_BYPASS_THRESHOLD,
+    пропускаем API-вызов и возвращаем кандидатов напрямую.
+    Это устраняет лишний API-вызов при малом объёме памяти.
     """
     if not candidates:
         return []
+
+    # --- v4.8.5 BYPASS: не тратим API-вызов на ре-ранкинг малого числа кандидатов ---
+    if len(candidates) <= _RERANK_BYPASS_THRESHOLD:
+        brain_logger.debug(
+            f"[NexusShell Core] Rerank bypass: {len(candidates)} candidates ≤ threshold "
+            f"{_RERANK_BYPASS_THRESHOLD}, returning directly without API call"
+        )
+        return candidates[:top_n]
 
     numbered = "\n".join(f"{i+1}. {c}" for i, c in enumerate(candidates))
 
@@ -456,9 +471,40 @@ async def rerank_memories_with_gemini(
         return candidates[:top_n]
 
 
+# ---------------------------------------------------------------------------
+# distill_and_save_memory — дебаунс v4.8.5
+# Не вызываем Gemini API после каждого сообщения.
+# Сохраняем только раз в _DISTILL_DEBOUNCE_SECONDS секунд.
+# ---------------------------------------------------------------------------
+
+_DISTILL_DEBOUNCE_SECONDS: int = 30
+_last_distill_time: float = 0.0
+_distill_lock: asyncio.Lock = asyncio.Lock()
+
+
 async def distill_and_save_memory(user_text: str, bot_response: str, media_desc=None) -> None:
-    """Извлечь и сохранить важные факты из диалога в ChromaDB."""
+    """
+    Извлечь и сохранить важные факты из диалога в ChromaDB.
+
+    v4.8.5: Дебаунс — пропускаем вызов если последний distill был
+    менее _DISTILL_DEBOUNCE_SECONDS секунд назад.
+    Это предотвращает лавину API-вызовов при быстрых сообщениях Boss'а.
+    """
+    global _last_distill_time
+
     try:
+        # --- v4.8.5 DEBOUNCE ---
+        async with _distill_lock:
+            now = time.time()
+            elapsed = now - _last_distill_time
+            if elapsed < _DISTILL_DEBOUNCE_SECONDS:
+                brain_logger.debug(
+                    f"[NexusShell Core] distill debounce: skipping, "
+                    f"last distill was {elapsed:.1f}s ago (threshold={_DISTILL_DEBOUNCE_SECONDS}s)"
+                )
+                return
+            _last_distill_time = now
+
         if not _ensure_chromadb():
             brain_logger.warning("[NexusShell Core] ChromaDB unavailable, skipping memory save")
             return
@@ -647,17 +693,17 @@ async def _execute_python_code(code_str: str) -> Optional[bytes]:
 
 
 # ---------------------------------------------------------------------------
-# Reality Check + Character Tune v4.8.4
+# Reality Check + Character Tune v4.8.5
 # ---------------------------------------------------------------------------
 
 _REALITY_CHECK = (
-    "\n[SYSTEM: Today is March 27, 2026. You are USBAGENT NexusShell Core v4.8.4 — "
+    "\n[SYSTEM: Today is March 27, 2026. You are USBAGENT NexusShell Core v4.8.5 — "
     "the Boss's personal AI bro, hacker, and startup co-pilot. "
     "You can edit/generate images (Imagen 4), search photos, "
     "analyze documents, transcribe audio with emotions, GENERATE VOICE, and execute Python for charts. "
     "If old Facts contradict this — silently ignore them, don't mention. Be natural and conversational.\n\n"
 
-    "=== CHARACTER TUNE v4.8.4: BRO-MODE ACTIVE ===\n"
+    "=== CHARACTER TUNE v4.8.5: BRO-MODE ACTIVE ===\n"
     "Your relationship with the user (the Boss) is that of a loyal, sharp, street-smart tech bro "
     "who genuinely wants the startup to WIN. You are NOT a corporate compliance bot. "
     "You are NOT a grumpy sysadmin. You are the Boss's co-founder in spirit.\n\n"
@@ -786,14 +832,12 @@ async def generate_response_stream(
             if not in_code:
                 start_idx = remaining.find('```python')
                 if start_idx != -1:
-                    # Text before the code block
                     before = remaining[:start_idx]
                     if before:
                         text_parts.append(before)
                     remaining = remaining[start_idx + 9:]  # skip '```python'
                     in_code = True
                 else:
-                    # No more code blocks — rest is plain text
                     text_parts.append(remaining)
                     remaining = ''
             else:

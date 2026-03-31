@@ -120,11 +120,17 @@ async def health_check():
         last_activity = time.time()
 
 async def trend_hunter_loop(bot):
-    """Background loop: runs a full trend scan every 12 hours and sends to ALLOWED_USER_ID."""
-    print('📡 TrendHunter loop started (12h interval)')
+    """
+    Background loop: runs a full trend scan every 12 hours and sends to ALLOWED_USER_ID.
 
-    # Initial delay: wait 60 seconds after startup before first scan
-    await asyncio.sleep(60)
+    v4.8.5: Initial delay увеличен с 60s до 300s (5 минут).
+    Это предотвращает конкуренцию за API-квоту сразу после старта бота,
+    когда Boss уже начинает отправлять сообщения.
+    """
+    print('📡 TrendHunter loop started (12h interval, initial delay 5min)')
+
+    # v4.8.5: увеличен с 60s до 300s — не конкурируем с Boss'ом при старте
+    await asyncio.sleep(300)
 
     while True:
         try:
@@ -177,7 +183,7 @@ async def post_init(application: Application):
 
     print('🧹 Temp files cleanup scheduled (every 1 hour)')
     print('💓 Health check started')
-    print('📡 TrendHunter v4.0 scheduled (every 12 hours)')
+    print('📡 TrendHunter v4.0 scheduled (every 12 hours, initial delay 5min)')
 
 def main():
     app = Application.builder().token(TG_TOKEN).post_init(post_init).build()
