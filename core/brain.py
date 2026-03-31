@@ -106,6 +106,40 @@ class NexusShellClientManager:
         brain_logger.error(f"[NexusShell Core] All {self.MAX_RETRIES} retries exhausted")
         raise last_exc  # type: ignore[misc]
 
+    async def generate_stream_with_retry(
+        self,
+        model: str,
+        contents,
+        config: types.GenerateContentConfig,
+    ):
+        """
+        Вызов generate_content_stream с exponential backoff retry.
+        Возвращает async-итератор чанков или бросает последнее исключение.
+        """
+        last_exc: Optional[Exception] = None
+        for attempt in range(self.MAX_RETRIES):
+            try:
+                return await self.client.aio.models.generate_content_stream(
+                    model=model,
+                    contents=contents,
+                    config=config,
+                )
+            except Exception as e:
+                last_exc = e
+                code = self._extract_code(e)
+                if code not in self.RETRYABLE_CODES:
+                    brain_logger.error(f"[NexusShell Core] Non-retryable stream error (code={code}): {e}")
+                    raise
+                delay = min(self.BASE_DELAY * (2 ** attempt), self.MAX_DELAY)
+                brain_logger.warning(
+                    f"[NexusShell Core] Retryable stream error (code={code}), "
+                    f"attempt {attempt + 1}/{self.MAX_RETRIES}, "
+                    f"retrying in {delay:.1f}s: {e}"
+                )
+                await asyncio.sleep(delay)
+        brain_logger.error(f"[NexusShell Core] All {self.MAX_RETRIES} stream retries exhausted")
+        raise last_exc  # type: ignore[misc]
+
     @staticmethod
     def _extract_code(exc: Exception) -> Optional[int]:
         """Извлечь HTTP-код из исключения."""
@@ -118,7 +152,6 @@ class NexusShellClientManager:
 
 # Глобальный синглтон
 _gemini_manager = NexusShellClientManager()
-client = _gemini_manager.client  # Публичный алиас — обратная совместимость
 
 
 # ---------------------------------------------------------------------------
@@ -219,6 +252,8 @@ def get_meme_vibe_col():
 
 # ---------------------------------------------------------------------------
 # Публичные алиасы ChromaDB — обратная совместимость
+# Используют геттеры, чтобы всегда возвращать актуальный объект
+# после lazy-init, а не None зафиксированный на момент импорта.
 # ---------------------------------------------------------------------------
 
 try:
@@ -226,9 +261,36 @@ try:
 except Exception as _chroma_init_err:
     brain_logger.error(f"[NexusShell Core] ChromaDB startup init exception: {_chroma_init_err}", exc_info=True)
 
-collection = _collection
-meme_vibe_col = _meme_vibe_col
-chroma_client = _chroma_client
+
+class _ChromaAlias:
+    """Proxy-дескриптор, который всегда возвращает актуальный объект из геттера."""
+    def __init__(self, getter):
+        self._getter = getter
+
+    def __repr__(self):
+        return repr(self._getter())
+
+    def __getattr__(self, item):
+        return getattr(self._getter(), item)
+
+    def __bool__(self):
+        return self._getter() is not None
+
+
+collection = property(get_collection)      # type: ignore[assignment]
+meme_vibe_col = property(get_meme_vibe_col)  # type: ignore[assignment]
+chroma_client = property(get_chroma_client)  # type: ignore[assignment]
+
+# Simple module-level aliases that resolve at call time via getter functions.
+# External code should prefer get_collection() / get_meme_vibe_col() / get_chroma_client().
+def _get_collection():
+    return get_collection()
+
+def _get_meme_vibe_col():
+    return get_meme_vibe_col()
+
+def _get_chroma_client():
+    return get_chroma_client()
 
 
 # ---------------------------------------------------------------------------
@@ -505,7 +567,8 @@ async def distill_and_save_memory(user_text: str, bot_response: str, media_desc=
                 return
             _last_distill_time = now
 
-        if not _ensure_chromadb():
+        col = get_collection()
+        if not _ensure_chromadb() or col is None:
             brain_logger.warning("[NexusShell Core] ChromaDB unavailable, skipping memory save")
             return
 
@@ -524,8 +587,9 @@ async def distill_and_save_memory(user_text: str, bot_response: str, media_desc=
         if fact and len(fact) > 5:
             ts = int(time.time())
             async with _chromadb_lock:
-                if _collection is not None:
-                    _collection.add(
+                col = get_collection()
+                if col is not None:
+                    col.add(
                         documents=[fact],
                         ids=[f'fact_{ts}_{uuid.uuid4().hex[:6]}'],
                         metadatas=[{'timestamp': ts}],
@@ -542,21 +606,18 @@ async def get_relevant_memories(query: str, top_n: int = _RERANK_TOP_N) -> str:
     Memory 3.0 — Deep RAG с семантическим ре-ранкингом через NexusShell Core.
     """
     try:
-        if not _ensure_chromadb():
+        col = get_collection()
+        if not _ensure_chromadb() or col is None:
             brain_logger.warning("[NexusShell Core] ChromaDB unavailable, returning empty memories")
-            return ''
-
-        if _collection is None:
-            brain_logger.warning("[NexusShell Core] ChromaDB collection is None, returning empty memories")
             return ''
 
         loop = asyncio.get_event_loop()
         try:
             results = await loop.run_in_executor(
                 None,
-                lambda: _collection.query(
+                lambda: col.query(
                     query_texts=[query],
-                    n_results=min(_RERANK_TOP_K, _collection.count()),
+                    n_results=min(_RERANK_TOP_K, col.count()),
                 )
             )
         except Exception as chroma_err:
@@ -798,15 +859,17 @@ async def generate_response_stream(
         )
 
         # --- Collect full streamed response into buffer ---
+        # Uses retry-aware stream method instead of bare client call
         raw_buffer = ""
         code_str = ""
 
         try:
-            async for chunk in await client.aio.models.generate_content_stream(
+            stream = await _gemini_manager.generate_stream_with_retry(
                 model=STABLE_MODEL,
                 contents=contents,
                 config=gen_config,
-            ):
+            )
+            async for chunk in stream:
                 if chunk.candidates:
                     for part in chunk.candidates[0].content.parts:
                         if part.text:

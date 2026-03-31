@@ -13,6 +13,16 @@ from tools.trend_hunter import run_full_scan
 # Глобальный счётчик для статистики
 _request_times = []
 
+# Timestamp of the last bot activity — updated by handle_msg wrapper
+_last_activity_time: float = time.time()
+
+
+def record_activity() -> None:
+    """Update the global last-activity timestamp. Call this on every handled message."""
+    global _last_activity_time
+    _last_activity_time = time.time()
+
+
 def cleanup_old_temp_files():
     """Очистка временных файлов старше 1 часа"""
     try:
@@ -108,16 +118,20 @@ async def trends_command(update, context):
         await update.message.reply_text(f"❌ Trend scan failed: {str(e)[:100]}")
 
 async def health_check():
-    """Сторожевой таймер - проверка зависания бота"""
-    last_activity = time.time()
-    
+    """
+    Watchdog: logs a warning if no bot activity has been recorded
+    for more than 5 minutes. Uses the global _last_activity_time
+    which is updated by record_activity() on every handled message.
+    """
     while True:
-        await asyncio.sleep(60)  # Проверка каждую минуту
-        
-        if time.time() - last_activity > 300:
-            print(f'⚠️ WARNING: No activity for {int((time.time() - last_activity) / 60)} minutes')
-        
-        last_activity = time.time()
+        await asyncio.sleep(60)  # check every minute
+
+        idle_seconds = time.time() - _last_activity_time
+        if idle_seconds > 300:
+            print(
+                f'⚠️ WARNING: No activity for '
+                f'{int(idle_seconds / 60)} minutes'
+            )
 
 async def trend_hunter_loop(bot):
     """
@@ -185,11 +199,16 @@ async def post_init(application: Application):
     print('💓 Health check started')
     print('📡 TrendHunter v4.0 scheduled (every 12 hours, initial delay 5min)')
 
+async def _handle_msg_with_activity(update, context):
+    """Wrapper around handle_msg that records activity for the health watchdog."""
+    record_activity()
+    await handle_msg(update, context)
+
 def main():
     app = Application.builder().token(TG_TOKEN).post_init(post_init).build()
     app.add_handler(CommandHandler('status', status_command))
     app.add_handler(CommandHandler('trends', trends_command))
-    app.add_handler(MessageHandler(filters.ALL, handle_msg))
+    app.add_handler(MessageHandler(filters.ALL, _handle_msg_with_activity))
     print('🚀 USBAGENT V1 STABLE Ready.')
     app.run_polling(close_loop=False)
 
