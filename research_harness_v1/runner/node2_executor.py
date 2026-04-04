@@ -4,7 +4,7 @@ from datetime import datetime
 
 def _run(cmd, cwd=None):
     res = subprocess.run(cmd, cwd=cwd, capture_output=True, text=True, timeout=120)
-    return res.returncode, res.stdout, res.stderr
+    return res.returncode, str(res.stdout), str(res.stderr)
 
 def run_health_checks(modified_files, venv_path, project_path):
     python = os.path.join(venv_path, 'bin', 'python3')
@@ -34,10 +34,10 @@ def execute_task(request_path, project_path):
     
     files_str = " ".join(req['target_files'])
     aider_cmd = f"source /root/aider_venv/bin/activate && bash run-aider.sh --message-file {{prompt_path}} --yes-always --no-gitignore {{files_str}}"
-    stdout, stderr, rc = _run(['bash', '-c', aider_cmd], cwd=project_path)
+    aider_rc, aider_out, aider_err = _run(['bash', '-c', aider_cmd], cwd=project_path)
     
+    # Рекурсивный захват изменений (Head~1 всегда актуален после коммита Aider)
     try:
-        # Считаем изменения относительно начала ветки
         modified_files = subprocess.check_output("git diff --name-only HEAD~1", shell=True, text=True).strip().split('\n')
         modified_files = [f for f in modified_files if f]
         git_diff = subprocess.check_output("git diff HEAD~1", shell=True, text=True)
@@ -45,15 +45,17 @@ def execute_task(request_path, project_path):
         modified_files = []
         git_diff = ""
     
-    # ПРЯМАЯ УСТАНОВКА СТАТУСА УСПЕХА
-    ok, err = run_health_checks(modified_files, os.path.join(project_path, '.venv'), project_path)
-    if ok:
-        status = "success"
+    status = "failure"
+    commit_hash = ""
+    health_error = ""
+    
+    if aider_rc == 0:
         commit_hash = subprocess.check_output("git rev-parse HEAD", shell=True, text=True).strip()
-    else:
-        status = "failure"
-        commit_hash = ""
-        stderr += f"\n{{err}}"
+        ok, err = run_health_checks(modified_files, os.path.join(project_path, '.venv'), project_path)
+        if ok:
+            status = "success"
+        else:
+            health_error = err
     
     res = {{
         "request_id": req['request_id'],
@@ -61,22 +63,26 @@ def execute_task(request_path, project_path):
         "commit_hash": commit_hash,
         "approval_hash": req.get('approval_meta', {{}}).get('approval_hash'),
         "approved_at": req.get('approval_meta', {{}}).get('approved_at'),
+        "approved_by_user": str(req.get('approval_meta', {{}}).get('approved_by_user', '')),
         "status": status,
         "execution_mode": "apply_in_temp_branch",
         "integrity_mode": req.get('integrity_mode', 'strict'),
         "modified_files": modified_files,
         "git_diff": git_diff,
-        "stdout": stdout, "stderr": stderr,
+        "stdout": str(aider_out),
+        "stderr": str(aider_err) + ("\n" + health_error if health_error else ""),
         "started_at": datetime.utcnow().isoformat() + "Z",
         "finished_at": datetime.utcnow().isoformat() + "Z",
         "duration_ms": int((time.time() - start_time) * 1000),
-        "base_branch": base_branch, "final_branch": base_branch,
+        "base_branch": base_branch,
+        "final_branch": base_branch,
         "cleanup_status": {{"success": True}},
         "tests": {{"ran": False, "passed_count": 0, "failed_count": 0}}
     }}
     
     _run(['git', 'checkout', base_branch])
-    if status != "success": _run(['git', 'branch', '-D', branch_name])
+    if status != "success":
+        _run(['git', 'branch', '-D', branch_name])
     
     res_p = f"/tmp/exec_res_{{req['request_id']}}.json"
     with open(res_p, 'w') as f: json.dump(res, f, indent=2)
@@ -84,6 +90,7 @@ def execute_task(request_path, project_path):
 
 if __name__ == "__main__":
     if len(sys.argv) > 1 and sys.argv[1] == "check_only":
+        # Logic for post-promotion check on main
         files = sys.argv[2:]
         p_path = '/root/USBAGENT_V2_1_STABLE'
         v_path = os.path.join(p_path, '.venv')
@@ -93,5 +100,5 @@ if __name__ == "__main__":
             sys.exit(1)
         print("Health checks passed.")
         sys.exit(0)
-    if len(sys.argv) >= 3:
-        execute_task(sys.argv[1], sys.argv[2])
+    
+    execute_task(sys.argv[1], sys.argv[2])
