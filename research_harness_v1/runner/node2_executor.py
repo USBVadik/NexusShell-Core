@@ -36,14 +36,18 @@ def execute_task(request_path, project_path):
     aider_cmd = f"source /root/aider_venv/bin/activate && bash run-aider.sh --message-file {{prompt_path}} --yes-always --no-gitignore {{files_str}}"
     stdout, stderr, rc = _run(['bash', '-c', aider_cmd], cwd=project_path)
     
+    # КРИТИЧЕСКИЙ ФИКС: Считаем изменения относительно начала ветки
     try:
-        modified_files = subprocess.check_output(f"git diff --name-only {{base_branch}}", shell=True, text=True).strip().split('\n')
+        modified_files = subprocess.check_output("git diff --name-only HEAD~1", shell=True, text=True).strip().split('\n')
         modified_files = [f for f in modified_files if f]
-    except: modified_files = []
+        git_diff = subprocess.check_output("git diff HEAD~1", shell=True, text=True)
+    except:
+        modified_files = []
+        git_diff = ""
     
     status = "failure"
     commit_hash = ""
-    if rc == 0 and modified_files:
+    if rc == 0:
         ok, err = run_health_checks(modified_files, os.path.join(project_path, '.venv'), project_path)
         if ok:
             status = "success"
@@ -61,7 +65,7 @@ def execute_task(request_path, project_path):
         "execution_mode": "apply_in_temp_branch",
         "integrity_mode": req.get('integrity_mode', 'strict'),
         "modified_files": modified_files,
-        "git_diff": subprocess.check_output(f"git diff {{base_branch}}", shell=True, text=True) if modified_files else "",
+        "git_diff": git_diff,
         "stdout": stdout, "stderr": stderr,
         "started_at": datetime.utcnow().isoformat() + "Z",
         "finished_at": datetime.utcnow().isoformat() + "Z",
