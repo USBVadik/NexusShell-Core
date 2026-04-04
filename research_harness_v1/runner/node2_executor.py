@@ -49,7 +49,7 @@ def execute_task(request_path, project_path):
     commit_hash = ""
     health_error = ""
     
-    if aider_rc == 0:
+    if True: # Force check even if aider warned
         commit_hash = subprocess.check_output("git rev-parse HEAD", shell=True, text=True).strip()
         ok, err = run_health_checks(modified_files, os.path.join(project_path, '.venv'), project_path)
         if ok:
