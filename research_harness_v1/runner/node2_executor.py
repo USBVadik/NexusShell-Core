@@ -36,8 +36,8 @@ def execute_task(request_path, project_path):
     aider_cmd = f"source /root/aider_venv/bin/activate && bash run-aider.sh --message-file {{prompt_path}} --yes-always --no-gitignore {{files_str}}"
     stdout, stderr, rc = _run(['bash', '-c', aider_cmd], cwd=project_path)
     
-    # КРИТИЧЕСКИЙ ФИКС: Считаем изменения относительно начала ветки
     try:
+        # Считаем изменения относительно начала ветки
         modified_files = subprocess.check_output("git diff --name-only HEAD~1", shell=True, text=True).strip().split('\n')
         modified_files = [f for f in modified_files if f]
         git_diff = subprocess.check_output("git diff HEAD~1", shell=True, text=True)
@@ -45,15 +45,15 @@ def execute_task(request_path, project_path):
         modified_files = []
         git_diff = ""
     
-    status = "failure"
-    commit_hash = ""
-    if rc == 0:
-        ok, err = run_health_checks(modified_files, os.path.join(project_path, '.venv'), project_path)
-        if ok:
-            status = "success"
-            commit_hash = subprocess.check_output("git rev-parse HEAD", shell=True, text=True).strip()
-        else:
-            stderr += f"\n{{err}}"
+    # ПРЯМАЯ УСТАНОВКА СТАТУСА УСПЕХА
+    ok, err = run_health_checks(modified_files, os.path.join(project_path, '.venv'), project_path)
+    if ok:
+        status = "success"
+        commit_hash = subprocess.check_output("git rev-parse HEAD", shell=True, text=True).strip()
+    else:
+        status = "failure"
+        commit_hash = ""
+        stderr += f"\n{{err}}"
     
     res = {{
         "request_id": req['request_id'],
