@@ -11,13 +11,13 @@ def run_health_checks(modified_files, venv_path, project_path):
     py_files = [f for f in modified_files if f.endswith('.py')]
     for f in py_files:
         abs_p = os.path.join(project_path, f) if not os.path.isabs(f) else f
-        rc, _, se = _run_cmd([python_bin, '-m', 'py_compile', abs_p], cwd_dir=project_path)
+        rc, _, se = _run_cmd([python_bin, '-m', 'py_compile', abs_p], cwd=project_path)
         if rc != 0: return False, f'[LAYER 1 - Syntax] FAILED for {f}:\n{se}'
     for f in py_files:
         mod = f.replace('/', '.').replace('\\', '.').removesuffix('.py').lstrip('.')
-        rc, _, se = _run_cmd([python_bin, '-c', f'import {mod}'], cwd_dir=project_path)
+        rc, _, se = _run_cmd([python_bin, '-c', f'import {mod}'], cwd=project_path)
         if rc != 0: return False, f'[LAYER 2 - Import] FAILED for {mod}:\n{se}'
-    rc, _, se = _run_cmd([python_bin, '-c', 'import main'], cwd_dir=project_path)
+    rc, _, se = _run_cmd([python_bin, '-c', 'import main'], cwd=project_path)
     if rc != 0: return False, f'[LAYER 3 - App Smoke] FAILED:\n{se}'
     return True, ''
 
