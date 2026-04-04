@@ -947,3 +947,4 @@ async def generate_response_stream(
                 distill_and_save_memory(query_text, full_text)
             )
             task.add_done_callback(lambda t: _on_task_done(t, "distill_memory"))
+client = NexusShellClientManager().client
