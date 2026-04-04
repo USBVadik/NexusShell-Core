@@ -97,4 +97,4 @@ def execute_task(req_path, proj_path):
     print(out_p)
 
 if __name__ == "__main__":
-    execute_task(sys.argv[1], sys.argv[2])
+    else: execute_task(sys.argv[1], sys.argv[2])
