@@ -1,8 +1,8 @@
 """
-node2_promoter.py  –  Slice 1 / Revision 1.2
+node2_promoter.py  –  Slice 1 / Revision 1.4
 Pre-flight checks only.  No git apply, no git commit, no promotion.
-Exit 0 → Pre-flight OK.
-Exit 1 → Pre-flight FAILED (receipt written with error_log).
+Exit 0 → Pre-flight OK  –OR–  Pre-flight FAILED (receipt written with error_log).
+Exit 1 → Hard error (cannot read request, cannot acquire lock, etc.).
 """
 
 from __future__ import annotations
@@ -87,6 +87,17 @@ def _preflight(request: dict[str, Any], repo: Path) -> list[str]:
         errors.append(f"Not a git repository: {repo}")
         return errors
 
+    # --- Dirty-repo check ---
+    status_result = _git(["status", "--porcelain"], repo)
+    if status_result.returncode != 0:
+        errors.append(
+            f"dirty_repo: git status --porcelain failed: {status_result.stderr.strip()}"
+        )
+    elif status_result.stdout.strip():
+        errors.append(
+            "dirty_repo: working tree has uncommitted changes"
+        )
+
     # --- HEAD matches expected_base_commit ---
     try:
         head = _current_head(repo)
@@ -129,14 +140,26 @@ def _write_receipt(
     request: dict[str, Any],
     pre_promotion_head: str,
     error_log: list[str],
+    post_check_status: str = "not_ran",
+    applied_artifact_hash: str | None = None,
 ) -> None:
+    approved_diff: str = request.get("approved_diff_contents") or ""
+    computed_artifact_hash = (
+        applied_artifact_hash
+        if applied_artifact_hash is not None
+        else _sha256_of_string(approved_diff)
+    )
+
     receipt: dict[str, Any] = {
+        "status": "success" if success else "failure",
         "success": success,
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "execution_result_id": request.get("execution_result_id"),
         "target_branch": request.get("target_branch"),
         "pre_promotion_head": pre_promotion_head,
+        "applied_artifact_hash": computed_artifact_hash,
         "rollback_performed": False,
+        "post_check_status": post_check_status,
         "error_log": error_log,
         "metadata": request.get("metadata", {}),
     }
@@ -209,9 +232,10 @@ def main() -> int:
                 request=request,
                 pre_promotion_head=pre_promotion_head,
                 error_log=[str(exc)],
+                post_check_status="not_ran",
             )
             print(f"Pre-flight FAILED: {exc}", file=sys.stderr)
-            return 1
+            return 0
 
         # --- Run pre-flight checks ---
         errors = _preflight(request, repo)
@@ -223,10 +247,11 @@ def main() -> int:
                 request=request,
                 pre_promotion_head=pre_promotion_head,
                 error_log=errors,
+                post_check_status="not_ran",
             )
             for err in errors:
                 print(f"Pre-flight FAILED: {err}", file=sys.stderr)
-            return 1
+            return 0
 
         # --- All checks passed ---
         # Slice 1 boundary: no git apply, no git commit, no promotion.
