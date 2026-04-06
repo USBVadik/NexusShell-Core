@@ -136,10 +136,10 @@ def _preflight(request: dict[str, Any], repo: Path) -> list[str]:
 def _write_receipt(
     receipt_path: Path,
     *,
-    success: bool,
+    status: str,
     request: dict[str, Any],
     pre_promotion_head: str,
-    error_log: list[str],
+    error_log: str,
     post_check_status: str = "not_ran",
     applied_artifact_hash: str | None = None,
 ) -> None:
@@ -151,8 +151,8 @@ def _write_receipt(
     )
 
     receipt: dict[str, Any] = {
-        "status": "success" if success else "failure",
-        "success": success,
+        "status": status,
+        
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "execution_result_id": request.get("execution_result_id"),
         "target_branch": request.get("target_branch"),
@@ -215,7 +215,15 @@ def main() -> int:
         fcntl.flock(lock_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
     except BlockingIOError:
         print("ERROR: another promotion is in progress (lock held)", file=sys.stderr)
-        return 1
+        _write_receipt(
+            receipt_path,
+            status="failure",
+            request=request,
+            pre_promotion_head="unknown",
+            error_log="lock_contention: another promotion is in progress",
+            post_check_status="not_ran",
+        )
+        return 0
     except OSError as exc:
         print(f"ERROR: cannot acquire lock {lock_path}: {exc}", file=sys.stderr)
         return 1
@@ -228,10 +236,10 @@ def main() -> int:
             pre_promotion_head = "unknown"
             _write_receipt(
                 receipt_path,
-                success=False,
+                status="failure",
                 request=request,
                 pre_promotion_head=pre_promotion_head,
-                error_log=[str(exc)],
+                error_log=str(exc),
                 post_check_status="not_ran",
             )
             print(f"Pre-flight FAILED: {exc}", file=sys.stderr)
@@ -241,12 +249,15 @@ def main() -> int:
         errors = _preflight(request, repo)
 
         if errors:
+            # Determine status: drift if HEAD/branch mismatch, otherwise failure
+            is_drift = any("HEAD mismatch" in e or "Branch mismatch" in e for e in errors)
+            status = "drift" if is_drift else "failure"
             _write_receipt(
                 receipt_path,
-                success=False,
+                status=status,
                 request=request,
                 pre_promotion_head=pre_promotion_head,
-                error_log=errors,
+                error_log="; ".join(errors),
                 post_check_status="not_ran",
             )
             for err in errors:
