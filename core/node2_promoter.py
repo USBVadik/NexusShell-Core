@@ -69,6 +69,7 @@ def _preflight(request: dict[str, Any], repo: Path) -> list[str]:
         "approved_diff_contents",
         "execution_result_id",
         "target_branch",
+        "approved_diff_hash",
     ]
     for field in required_fields:
         if field not in request:
@@ -243,6 +244,24 @@ def main() -> int:
                 post_check_status="not_ran",
             )
             print(f"Pre-flight FAILED: {exc}", file=sys.stderr)
+            return 0
+
+        # --- Hash Integrity Verification ---
+        approved_diff = request.get("approved_diff_contents", "")
+        expected_hash = request.get("approved_diff_hash", "")
+        computed_hash = _sha256_of_string(approved_diff)
+
+        if computed_hash != expected_hash:
+            _write_receipt(
+                receipt_path,
+                status="failure",
+                request=request,
+                pre_promotion_head=pre_promotion_head,
+                error_log=f"hash_mismatch: expected {expected_hash}, got {computed_hash}",
+                post_check_status="not_ran",
+                applied_artifact_hash=computed_hash
+            )
+            print(f"Pre-flight FAILED: hash_mismatch", file=sys.stderr)
             return 0
 
         # --- Run pre-flight checks ---
