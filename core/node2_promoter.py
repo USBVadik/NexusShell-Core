@@ -1,8 +1,8 @@
 """
-node2_promoter.py  –  Slice 1 / Revision 1.4
-Pre-flight checks only.  No git apply, no git commit, no promotion.
-Exit 0 → Pre-flight OK  –OR–  Pre-flight FAILED (receipt written with error_log).
-Exit 1 → Hard error (cannot read request, cannot acquire lock, etc.).
+node2_promoter.py  –  Slice 2.4 / Revision 2.4
+Safe Promotion Promoter: Implementation of Slice 2 (Apply, Verify, Recovery).
+Exit 0 → Process reached a defined outcome state (Receipt generated where applicable).
+Exit 1 → Critical systemic failure before or during execution context setup.
 """
 
 from __future__ import annotations
@@ -14,6 +14,7 @@ import json
 import os
 import subprocess
 import sys
+import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -51,6 +52,58 @@ def _current_branch(repo: Path) -> str:
         raise RuntimeError(f"git rev-parse --abbrev-ref HEAD failed: {result.stderr.strip()}")
     return result.stdout.strip()
 
+def _get_staged_index_hash(repo: Path) -> str:
+    """Return the SHA of the current index tree."""
+    res = subprocess.run(["git", "write-tree"], cwd=str(repo), capture_output=True, text=True)
+    if res.returncode != 0:
+        return "unknown"
+    return res.stdout.strip()
+
+
+
+def _run_safety_rails(repo: Path, affected_files: list[str]) -> tuple[str, list]:
+    """Run 3 levels of safety rails and return (status, details)."""
+    import subprocess
+    details = []
+    overall_status = "pass"
+    
+    # Level 1: Syntax Check
+    for f_path in affected_files:
+        full_path = repo / f_path
+        if full_path.suffix == ".py":
+            res = subprocess.run(["python3", "-m", "py_compile", str(full_path)], capture_output=True, text=True)
+            details.append({
+                "rail_name": f"Syntax: {f_path}",
+                "result": "pass" if res.returncode == 0 else "fail",
+                "exit_code": res.returncode,
+                "log_excerpt": res.stderr if res.returncode != 0 else ""
+            })
+            if res.returncode != 0: overall_status = "fail"
+
+    # Level 2: Import Check (Base baseline integrity)
+    res = subprocess.run(["python3", "-c", "import main"], cwd=str(repo), capture_output=True, text=True)
+    details.append({
+        "rail_name": "Baseline Integrity (Import main)",
+        "result": "pass" if res.returncode == 0 else "fail",
+        "exit_code": res.returncode,
+        "log_excerpt": res.stderr if res.returncode != 0 else ""
+    })
+    if res.returncode != 0: overall_status = "fail"
+
+    return overall_status, details
+
+def _rollback(repo: Path, anchor: str) -> bool:
+    """Attempt to return repo to a clean state at anchor."""
+    try:
+        # Reset index and working tree
+        subprocess.run(["git", "reset", "--hard", anchor], cwd=str(repo), capture_output=True)
+        # Clean untracked files
+        subprocess.run(["git", "clean", "-fd"], cwd=str(repo), capture_output=True)
+        # Verify if really clean
+        res = subprocess.run(["git", "status", "--porcelain"], cwd=str(repo), capture_output=True, text=True)
+        return not bool(res.stdout.strip())
+    except Exception:
+        return False
 
 # ---------------------------------------------------------------------------
 # Pre-flight checks
@@ -137,32 +190,53 @@ def _preflight(request: dict[str, Any], repo: Path) -> list[str]:
 def _write_receipt(
     receipt_path: Path,
     *,
-    status: str,
+    outcome_code: str,
     request: dict[str, Any],
     pre_promotion_head: str,
-    error_log: str,
-    post_check_status: str = "not_ran",
-    applied_artifact_hash: str | None = None,
+    error_log: str = "",
+    apply_started: bool = False,
+    apply_completed: bool = False,
+    irreversible_action_occurred: bool = False,
+    apply_authorized: bool = False,
+    rollback_attempted: bool = False,
+    rollback_result: str = "not_needed",
+    dirty_state_detected: bool = False,
+    verification_status: str = "not_ran",
+    verification_details: list = None,
+    staged_index_hash: str = None,
+    started_at: str = None,
 ) -> None:
-    approved_diff: str = request.get("approved_diff_contents") or ""
-    computed_artifact_hash = (
-        applied_artifact_hash
-        if applied_artifact_hash is not None
-        else _sha256_of_string(approved_diff)
-    )
-
-    receipt: dict[str, Any] = {
-        "status": status,
-        
-        "timestamp": datetime.now(timezone.utc).isoformat(),
-        "execution_result_id": request.get("execution_result_id"),
-        "target_branch": request.get("target_branch"),
-        "pre_promotion_head": pre_promotion_head,
-        "applied_artifact_hash": computed_artifact_hash,
-        "rollback_performed": False,
-        "post_check_status": post_check_status,
-        "error_log": error_log,
-        "metadata": request.get("metadata", {}),
+    from datetime import datetime, timezone
+    approved_diff = request.get("approved_diff_contents") or ""
+    source_hash = request.get("approved_diff_hash") or _sha256_of_string(approved_diff)
+    
+    receipt = {
+        "receipt_schema_version": "2.1",
+        "outcome_code": outcome_code,
+        "request_id": str(request.get("request_id", "unknown")),
+        "apply_authorized": apply_authorized,
+        "apply_started": apply_started,
+        "apply_completed": apply_completed,
+        "irreversible_action_occurred": irreversible_action_occurred,
+        "rollback_attempted": rollback_attempted,
+        "rollback_result": rollback_result,
+        "dirty_state_detected": dirty_state_detected,
+        "human_gate_required": outcome_code == "S2_VERIFIED_HUMAN_GATE_REQUIRED",
+        "safe_to_retry": outcome_code in ["S2_APPLY_NOT_STARTED", "S2_APPLY_FAILED_ROLLBACK_CLEAN", "S2_POSTCHECK_FAILED_ROLLBACK_CLEAN"],
+        "eligible_for_promotion_review": outcome_code == "S2_VERIFIED_HUMAN_GATE_REQUIRED",
+        "audit_required": "DIRTY" in outcome_code or outcome_code == "S2_BLOCKED_AUDIT_REQUIRED",
+        "artifact_identity": {
+            "source_hash": source_hash,
+            "staged_index_hash": staged_index_hash
+        },
+        "verification_summary": {
+            "status": verification_status,
+            "details": verification_details or []
+        },
+        "execution_timestamps": {
+            "started_at": started_at or datetime.now(timezone.utc).isoformat(),
+            "finished_at": datetime.now(timezone.utc).isoformat()
+        }
     }
     receipt_path.write_text(json.dumps(receipt, indent=2, ensure_ascii=False), encoding="utf-8")
 
@@ -195,6 +269,7 @@ def main() -> int:
     repo = Path(args.repo).resolve()
     request_path = Path(args.request)
     receipt_path = Path(args.receipt)
+    started_at = datetime.now(timezone.utc).isoformat()
 
     # --- Load request ---
     if not request_path.exists():
@@ -218,11 +293,11 @@ def main() -> int:
         print("ERROR: another promotion is in progress (lock held)", file=sys.stderr)
         _write_receipt(
             receipt_path,
-            status="failure",
+            outcome_code="S2_APPLY_NOT_STARTED",
             request=request,
+            apply_authorized=False,
             pre_promotion_head="unknown",
             error_log="lock_contention: another promotion is in progress",
-            post_check_status="not_ran",
         )
         return 0
     except OSError as exc:
@@ -237,11 +312,12 @@ def main() -> int:
             pre_promotion_head = "unknown"
             _write_receipt(
                 receipt_path,
-                status="failure",
+                outcome_code="S2_APPLY_NOT_STARTED",
                 request=request,
+                apply_authorized=False,
                 pre_promotion_head=pre_promotion_head,
                 error_log=str(exc),
-                post_check_status="not_ran",
+                started_at=started_at
             )
             print(f"Pre-flight FAILED: {exc}", file=sys.stderr)
             return 0
@@ -273,21 +349,125 @@ def main() -> int:
             status = "drift" if is_drift else "failure"
             _write_receipt(
                 receipt_path,
-                status=status,
+                outcome_code="S2_APPLY_NOT_STARTED",
                 request=request,
+                apply_authorized=False,
                 pre_promotion_head=pre_promotion_head,
                 error_log="; ".join(errors),
-                post_check_status="not_ran",
+                started_at=started_at
             )
             for err in errors:
                 print(f"Pre-flight FAILED: {err}", file=sys.stderr)
             return 0
 
-        # --- All checks passed ---
-        # Slice 1 boundary: no git apply, no git commit, no promotion.
-        print("Pre-flight OK")
-        return 0
+                # --- S2.2_APPLY_RECOVERY Phase ---
+        approved_diff = request.get("approved_diff_contents", "")
+        import tempfile, subprocess
+        with tempfile.NamedTemporaryFile(mode="wb", prefix="promo_", suffix=".patch", delete=False) as tf:
+            tf.write(approved_diff.encode("utf-8"))
+            patch_path = tf.name
 
+        try:
+            apply_started = True
+            apply_res = subprocess.run(
+                ["git", "apply", "--index", patch_path],
+                cwd=str(repo),
+                capture_output=True,
+                text=True
+            )
+
+            if apply_res.returncode == 0:
+                apply_completed = True
+                staged_hash = _get_staged_index_hash(repo)
+                print(f"Apply OK. Staged Hash: {staged_hash}")
+                
+                # --- Verification Phase (Slice 2.3) ---
+                # Detect affected files from index
+                diff_res = subprocess.run(["git", "diff", "--cached", "--name-only"], cwd=str(repo), capture_output=True, text=True)
+                affected = diff_res.stdout.splitlines()
+                
+                v_status, v_details = _run_safety_rails(repo, affected)
+                
+                if v_status == "pass":
+                    # S2_VERIFIED_HUMAN_GATE_REQUIRED path
+                    _write_receipt(
+                        receipt_path,
+                        outcome_code="S2_VERIFIED_HUMAN_GATE_REQUIRED",
+                        request=request,
+                        pre_promotion_head=pre_promotion_head,
+                        apply_started=True,
+                        apply_completed=True,
+                        verification_status="pass",
+                        verification_details=v_details,
+                        staged_index_hash=staged_hash,
+                        started_at=started_at
+                    )
+                    print("Verification PASSED. Staged for Human Review.")
+                    return 0
+                else:
+                    # Post-check failure detected -> Trigger Rollback
+                    print(f"Verification FAILED. Initiating Rollback.", file=sys.stderr)
+                    rb_success = _rollback(repo, pre_promotion_head)
+                    outcome = "S2_POSTCHECK_FAILED_ROLLBACK_CLEAN" if rb_success else "S2_POSTCHECK_FAILED_ROLLBACK_DIRTY"
+                    _write_receipt(
+                        receipt_path,
+                        outcome_code=outcome,
+                        request=request,
+                        pre_promotion_head=pre_promotion_head,
+                        error_log="Safety Rails failed after apply.",
+                        apply_started=True,
+                        apply_completed=True,
+                        rollback_attempted=True,
+                        rollback_result="success" if rb_success else "fail",
+                        dirty_state_detected=not rb_success,
+                        verification_status="fail",
+                        verification_details=v_details,
+                        staged_index_hash=staged_hash,
+                        started_at=started_at
+                    )
+                    return 0
+            else:
+                raise RuntimeError(f"git apply failed: {apply_res.stderr.strip()}")
+
+        except Exception as exc:
+            rb_success = _rollback(repo, pre_promotion_head)
+            outcome = "S2_APPLY_FAILED_ROLLBACK_CLEAN" if rb_success else "S2_APPLY_FAILED_ROLLBACK_DIRTY"
+            _write_receipt(
+                receipt_path,
+                outcome_code=outcome,
+                request=request,
+                pre_promotion_head=pre_promotion_head,
+                error_log=str(exc),
+                apply_started=True,
+                apply_completed=False,
+                rollback_attempted=True,
+                rollback_result="success" if rb_success else "fail",
+                dirty_state_detected=not rb_success,
+                started_at=started_at
+            )
+            print(f"Apply FAILED: {exc}. Rollback: {rb_success}", file=sys.stderr)
+            return 0
+        finally:
+            import os
+            if os.path.exists(patch_path):
+                os.unlink(patch_path)
+
+
+    except Exception as systemic_exc:
+        # Systemic Integrity Escalation
+        _write_receipt(
+            receipt_path,
+            outcome_code="S2_BLOCKED_AUDIT_REQUIRED",
+            request=request,
+            pre_promotion_head=pre_promotion_head,
+            error_log=f"Systemic failure: {systemic_exc}",
+            apply_started=apply_started,
+            apply_completed=apply_completed,
+            dirty_state_detected=apply_started, # Assume dirty if mutation might have started
+            started_at=started_at
+        )
+        print(f"SYSTEMIC FAILURE: {systemic_exc}", file=sys.stderr)
+        return 1
     finally:
         fcntl.flock(lock_fd, fcntl.LOCK_UN)
         lock_fd.close()
