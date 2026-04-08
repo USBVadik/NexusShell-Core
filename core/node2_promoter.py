@@ -270,6 +270,8 @@ def main() -> int:
     request_path = Path(args.request)
     receipt_path = Path(args.receipt)
     started_at = datetime.now(timezone.utc).isoformat()
+    apply_started = False
+    apply_completed = False
 
     # --- Load request ---
     if not request_path.exists():
@@ -330,12 +332,13 @@ def main() -> int:
         if computed_hash != expected_hash:
             _write_receipt(
                 receipt_path,
-                status="failure",
+                outcome_code="S2_APPLY_NOT_STARTED",
                 request=request,
+                apply_authorized=False,
                 pre_promotion_head=pre_promotion_head,
                 error_log=f"hash_mismatch: expected {expected_hash}, got {computed_hash}",
-                post_check_status="not_ran",
-                applied_artifact_hash=computed_hash
+                staged_index_hash=computed_hash,
+                started_at=started_at
             )
             print(f"Pre-flight FAILED: hash_mismatch", file=sys.stderr)
             return 0
