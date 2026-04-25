@@ -1,326 +1,117 @@
 """
-trend_hunter.py — USBAGENT Trend Hunter v4.0
-
-Scans for asymmetric leverage signals across AI, Crypto, OSINT, and Tech
-using Gemini Search Grounding. God Mode persona maintained throughout.
+trend_hunter.py — USBAGENT Narrative Alpha Engine v6.9 [FLASH] (Russian Edition)
 """
-
-import asyncio
-import json
-import re
-import time
+import asyncio, json, re, time, sys, html, os, traceback
 from datetime import datetime
-
 from google.genai import types
-
 from core.brain import client
 from config import STABLE_MODEL
 from core.logger import trend_logger
 
-# ---------------------------------------------------------------------------
-# Constants
-# ---------------------------------------------------------------------------
+# Агрессивный промпт на русском языке
+SYNTHESIZER_PROMPT = """
+ACT AS A VIRAL CHAOS STRATEGIST. 
+Я дам тебе СЫРЫЕ ДАННЫЕ за {today}. 
+Преврати их в 3 'Опасных' нарратива для X (Twitter).
 
-TREND_DOMAINS = ["AI", "Crypto", "OSINT", "Tech"]
+STRICT RULES:
+- ТОЛЬКО РУССКИЙ ЯЗЫК.
+- НИКАКИХ СОВЕТОВ. НИКАКИХ 'ИССЛЕДУЙТЕ'. НИКАКИХ 'ИНВЕСТИРУЙТЕ'.
+- Тон: Циничный, агрессивный, инсайдерский.
+- Фокус на том, как эти события разрушают старую систему.
 
-GROUNDING_SCAN_PROMPT = """
-You are USBAGENT — an elite intelligence operator with God Mode access to global information flows.
-Today is {date}.
-
-Your mission: Scan the current information landscape across these domains: AI, Crypto, OSINT, Tech.
-
-Using your real-time search access, identify:
-1. What topics are SURGING right now (last 24-72 hours)?
-2. What narratives are being discussed in elite circles but haven't hit mainstream yet?
-3. What technical breakthroughs, protocol launches, or geopolitical shifts are creating asymmetric opportunities?
-4. What are the most discussed projects, tools, or events in each domain?
-
-Focus on 2026 context. Be specific — name actual projects, protocols, people, events.
-Return raw intelligence data as a structured list. Be brutally honest and precise.
-No fluff. Operator-grade intel only.
-
-Format each signal as:
-SIGNAL: [name]
-DOMAIN: [AI/Crypto/OSINT/Tech]
-MOMENTUM: [description of current momentum]
-SOURCE_INDICATORS: [what signals indicate this is rising]
-"""
-
-ANALYSIS_PROMPT = """
-You are USBAGENT — God Mode intelligence analyst.
-
-Here is raw trend intelligence data:
+RAW DATA:
 {raw_data}
 
-Your mission: Identify ASYMMETRIC LEVERAGE opportunities — topics that are:
-- Rising fast but NOT yet saturated in mainstream media
-- Have high narrative potential (people will want to talk about this)
-- Create actionable content/business opportunities RIGHT NOW
-
-For each signal, output EXACTLY this format (JSON array):
-
+Output JSON format:
 [
   {{
-    "signal_name": "Name of the trend/topic",
-    "domain": "AI|Crypto|OSINT|Tech",
-    "twitter_score": 8,
-    "narrative": "Why this matters RIGHT NOW — the deeper story, the asymmetric angle, why 99% haven't caught on yet",
-    "actionable_idea": "Specific action: e.g. 'Make a VEO video about X', 'Write a thread about Y', 'Build a tool for Z'",
-    "saturation_level": "low|medium|high",
-    "time_window": "How long this window stays open (e.g. '48 hours', '2 weeks')"
+    "name": "Заголовок (короткий и дерзкий)",
+    "thesis": "Темная правда / Суть нарратива",
+    "viral_why": "Почему это станет виральным",
+    "x_post": "Хлесткий пост для X (без эмодзи, без хэштегов)"
   }}
 ]
-
-Rules:
-- twitter_score: 0-10 based on virality potential (10 = guaranteed viral)
-- Only include signals with twitter_score >= 6
-- Maximum 7 signals
-- Prioritize LOW saturation signals
-- Be SPECIFIC. No generic advice. Name real projects, real people, real events.
-- Maintain God Mode persona: direct, confident, no hedging
-
-Return ONLY the JSON array. No markdown, no explanation.
 """
 
-BRIEF_HEADER = """
-⚡️ *USBAGENT SIGNAL BRIEF* ⚡️
-`{timestamp}`
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+def _esc(text: str) -> str:
+    if not text: return ""
+    try:
+        return html.escape(str(text), quote=True)
+    except:
+        return "[Error]"
 
-🎯 *ASYMMETRIC LEVERAGE REPORT*
-Domains: AI · Crypto · OSINT · Tech
+def format_signal_brief(trends: list[dict]) -> str:
+    if not trends: return "⚡️ <b>USBAGENT</b>\n\n🔴 <b>Нарративы не сформированы.</b>"
+    ts = datetime.now().strftime("%Y-%m-%d %H:%M UTC")
+    brief = f"⚡️ <b>NARRATIVE ALPHA v6.9 [FLASH]</b>\n<code>{ts}</code>\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
+    
+    for i, t in enumerate(trends, 1):
+        if not isinstance(t, dict): continue
+        name = _esc(t.get('name', 'Brutal Truth'))
+        thesis = _esc(t.get('thesis', 'Confidential'))
+        why = _esc(t.get('viral_why', 'High Tension'))
+        post = _esc(t.get('x_post', 'Pending...'))
+        
+        brief += (
+            f"<b>{i}. {name}</b>\n"
+            f"🧬 <b>Тезис:</b> <i>{thesis}</i>\n"
+            f"🔥 <b>Viral Edge:</b> {why}\n\n"
+            f"📝 <b>X-READY POST:</b>\n<code>{post}</code>\n\n"
+            f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
+        )
+            
+    return brief + "🧠 <b>Twitter Chaos Mode — USBAGENT v6.9</b>"
 
-"""
-
-BRIEF_SIGNAL_TEMPLATE = """
-{index}. 🔥 *{signal_name}*
-   📡 Domain: `{domain}`
-   📊 Twitter Score: `{twitter_score}/10`
-   ⏳ Window: `{time_window}` | Saturation: `{saturation_level}`
-
-   💡 *Narrative:*
-   _{narrative}_
-
-   ⚡ *Action:*
-   `{actionable_idea}`
-"""
-
-BRIEF_FOOTER = """
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-🧠 *God Mode Intel — USBAGENT v4.0*
-_Next scan in 12 hours_
-"""
-
-_SAFETY_SETTINGS = [
-    types.SafetySetting(
-        category='HARM_CATEGORY_HATE_SPEECH',
-        threshold='BLOCK_ONLY_HIGH'
-    ),
-    types.SafetySetting(
-        category='HARM_CATEGORY_DANGEROUS_CONTENT',
-        threshold='BLOCK_ONLY_HIGH'
-    ),
-    types.SafetySetting(
-        category='HARM_CATEGORY_HARASSMENT',
-        threshold='BLOCK_ONLY_HIGH'
-    ),
-    types.SafetySetting(
-        category='HARM_CATEGORY_SEXUALLY_EXPLICIT',
-        threshold='BLOCK_ONLY_HIGH'
-    ),
-]
-
-
-# ---------------------------------------------------------------------------
-# Core functions
-# ---------------------------------------------------------------------------
-
-async def get_daily_signals() -> str:
-    """
-    Use Gemini Search Grounding to scan for trending topics.
-    Returns raw intelligence data as a string.
-    """
-    trend_logger.info("TrendHunter: Starting daily signal scan...")
-
+async def get_raw_data() -> str:
     today = datetime.now().strftime("%B %d, %Y")
-    prompt = GROUNDING_SCAN_PROMPT.format(date=today)
-
+    prompt = f"Search for 5 critical updates in AI and Crypto for {today}. Focus on: Binance Agentic SDK, Clanker Base fees, Virtuals Protocol GDP, ZKML developments, and GPU compute market shifts. Provide detailed facts."
     try:
         google_search_tool = types.Tool(google_search=types.GoogleSearch())
-
         res = await client.aio.models.generate_content(
-            model=STABLE_MODEL,
-            contents=prompt,
-            config=types.GenerateContentConfig(
-                tools=[google_search_tool],
-                temperature=0.7,
-                max_output_tokens=2048,
-                safety_settings=_SAFETY_SETTINGS,
-            ),
+            model=STABLE_MODEL, contents=prompt,
+            config=types.GenerateContentConfig(tools=[google_search_tool], temperature=0.7)
         )
+        return res.text if res.text else ""
+    except:
+        res = await client.aio.models.generate_content(model=STABLE_MODEL, contents=prompt)
+        return res.text if res.text else ""
 
-        raw_data = res.text if res.text else ""
-        trend_logger.info(f"TrendHunter: Raw scan complete, {len(raw_data)} chars")
-        return raw_data
-
-    except Exception as e:
-        trend_logger.error(f"TrendHunter: get_daily_signals error: {e}", exc_info=True)
-        # Fallback without grounding
-        try:
-            trend_logger.info("TrendHunter: Falling back to non-grounded scan...")
-            res = await client.aio.models.generate_content(
-                model=STABLE_MODEL,
-                contents=prompt,
-                config=types.GenerateContentConfig(
-                    temperature=0.8,
-                    max_output_tokens=2048,
-                    safety_settings=_SAFETY_SETTINGS,
-                ),
-            )
-            return res.text if res.text else ""
-        except Exception as e2:
-            trend_logger.error(f"TrendHunter: Fallback also failed: {e2}", exc_info=True)
-            return ""
-
-
-async def analyze_signals(raw_data: str) -> list[dict]:
-    """
-    Analyze raw trend data to identify asymmetric leverage opportunities.
-    Returns a list of signal dicts.
-    """
-    if not raw_data or len(raw_data.strip()) < 50:
-        trend_logger.warning("TrendHunter: Raw data too short for analysis")
-        return []
-
-    trend_logger.info("TrendHunter: Analyzing signals for asymmetric leverage...")
-
-    prompt = ANALYSIS_PROMPT.format(raw_data=raw_data[:4000])
-
+async def run_full_scan() -> tuple[str, list[dict]]:
     try:
+        today = datetime.now().strftime("%d %B %Y")
+        raw_data = await get_raw_data()
+        
+        if not raw_data or len(raw_data.strip()) < 50:
+            return ("⚡️ <b>USBAGENT</b>\n\n🔴 Ошибка сбора данных.", [])
+
+        prompt = SYNTHESIZER_PROMPT.format(today=today, raw_data=raw_data[:4000])
+        
         res = await client.aio.models.generate_content(
-            model=STABLE_MODEL,
-            contents=prompt,
-            config=types.GenerateContentConfig(
-                temperature=0.4,
-                max_output_tokens=2048,
-                safety_settings=_SAFETY_SETTINGS,
-            ),
+            model=STABLE_MODEL, 
+            contents=prompt, 
+            config=types.GenerateContentConfig(temperature=0.8)
         )
-
-        response_text = res.text if res.text else ""
-
-        # Extract JSON array — handle potential markdown code fences
-        match = re.search(r'\[.*?\]', response_text, re.DOTALL)
+        
+        text = res.text
+        # Очистка от markdown блоков
+        text = re.sub(r'```[a-z]*\s*', '', text)
+        text = re.sub(r'```\s*', '', text)
+        
+        match = re.search(r'\[.*\]', text, re.DOTALL)
         if not match:
-            trend_logger.error("TrendHunter: No JSON array found in analysis response")
-            trend_logger.debug(f"TrendHunter: Raw response was: {response_text[:300]}")
-            return []
-
-        signals = json.loads(match.group())
-
-        if not isinstance(signals, list):
-            trend_logger.error("TrendHunter: Parsed JSON is not a list")
-            return []
-
-        # Validate and filter
-        valid_signals = []
-        for s in signals:
-            if not isinstance(s, dict):
-                continue
-            required_keys = ['signal_name', 'domain', 'twitter_score', 'narrative', 'actionable_idea']
-            if not all(k in s for k in required_keys):
-                trend_logger.warning(f"TrendHunter: Signal missing required keys: {s.keys()}")
-                continue
-            try:
-                s['twitter_score'] = int(s['twitter_score'])
-            except (ValueError, TypeError):
-                s['twitter_score'] = 5
-            # Ensure optional fields have defaults
-            s.setdefault('saturation_level', 'medium')
-            s.setdefault('time_window', 'unknown')
-            if s['twitter_score'] >= 6:
-                valid_signals.append(s)
-
-        # Sort by twitter_score descending
-        valid_signals.sort(key=lambda x: x.get('twitter_score', 0), reverse=True)
-
-        trend_logger.info(f"TrendHunter: Found {len(valid_signals)} valid signals")
-        return valid_signals[:7]
-
-    except json.JSONDecodeError as e:
-        trend_logger.error(f"TrendHunter: JSON parse error in analysis: {e}")
-        return []
-    except Exception as e:
-        trend_logger.error(f"TrendHunter: analyze_signals error: {e}", exc_info=True)
-        return []
-
-
-def format_signal_brief(signals: list[dict]) -> str:
-    """
-    Format signals into a God Mode Signal Brief for Telegram.
-    Returns formatted Markdown string.
-    """
-    if not signals:
-        return (
-            "⚡️ *USBAGENT SIGNAL BRIEF*\n\n"
-            "🔴 *No high-leverage signals detected this cycle.*\n"
-            "_Markets are quiet. Stay ready._\n\n"
-            "🧠 *God Mode Intel — USBAGENT v4.0*"
-        )
-
-    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M UTC")
-    brief = BRIEF_HEADER.format(timestamp=timestamp)
-
-    for i, signal in enumerate(signals, 1):
-        saturation_emoji = {
-            'low': '🟢',
-            'medium': '🟡',
-            'high': '🔴',
-        }.get(signal.get('saturation_level', 'medium'), '🟡')
-
-        brief += BRIEF_SIGNAL_TEMPLATE.format(
-            index=i,
-            signal_name=signal.get('signal_name', 'Unknown'),
-            domain=signal.get('domain', 'Tech'),
-            twitter_score=signal.get('twitter_score', 0),
-            time_window=signal.get('time_window', 'Unknown'),
-            saturation_level=f"{saturation_emoji} {signal.get('saturation_level', 'medium')}",
-            narrative=signal.get('narrative', ''),
-            actionable_idea=signal.get('actionable_idea', ''),
-        )
-
-    brief += BRIEF_FOOTER
-    return brief
-
-
-async def run_full_scan() -> str:
-    """
-    Run a complete trend scan: get signals → analyze → format brief.
-    Returns formatted brief string ready to send to Telegram.
-    """
-    trend_logger.info("TrendHunter: Running full scan pipeline...")
-
-    try:
-        raw_data = await get_daily_signals()
-
-        if not raw_data:
-            return (
-                "⚡️ *USBAGENT SIGNAL BRIEF*\n\n"
-                "🔴 *Scan failed — no data retrieved.*\n"
-                "_Check Gemini API connectivity._\n\n"
-                "🧠 *God Mode Intel — USBAGENT v4.0*"
-            )
-
-        signals = await analyze_signals(raw_data)
-        brief = format_signal_brief(signals)
-
-        trend_logger.info(f"TrendHunter: Full scan complete, {len(signals)} signals")
-        return brief
+            return (f"🔴 Ошибка парсинга JSON. Raw: {_esc(text[:200])}", [])
+            
+        trends = json.loads(match.group())
+        return (format_signal_brief(trends), trends)
 
     except Exception as e:
-        trend_logger.error(f"TrendHunter: run_full_scan error: {e}", exc_info=True)
-        return (
-            f"⚡️ *USBAGENT SIGNAL BRIEF*\n\n"
-            f"🔴 *Scan error:* `{str(e)[:100]}`\n\n"
-            f"🧠 *God Mode Intel — USBAGENT v4.0*"
-        )
+        err_msg = f"ERROR: {repr(e)}\\n{traceback.format_exc()[-150:]}"
+        return (f"🔴 Ошибка системы: <code>{_esc(err_msg)}</code>", [])
+
+if __name__ == "__main__":
+    # Тестовый запуск
+    async def test():
+        brief, _ = await run_full_scan()
+        print(brief)
+    asyncio.run(test())
