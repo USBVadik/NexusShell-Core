@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Synrail — Proof-first control for AI coding agents</title>
+  <meta name="description" content="Synrail is a proof-first control layer for AI coding agents. It blocks false-green “done” claims until runtime proof is verified." />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: '#6FB7F2',
+            brandlight: '#A5D7FF',
+            surface: '#0F0F11',
+            card: '#18181B',
+            border: '#27272A',
+          },
+          fontFamily: {
+            sans: ['Inter', 'ui-sans-serif', 'system-ui'],
+            mono: ['JetBrains Mono', 'ui-monospace', 'monospace'],
+          },
+        },
+      },
+    };
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <style>
+    body { background-color: #0F0F11; }
+    .gradient-text {
+      background: linear-gradient(135deg, #6FB7F2 0%, #3B82F6 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero-glow {
+      background: radial-gradient(ellipse 80% 50% at 50% -10%, rgba(111, 183, 242, 0.15), transparent);
+    }
+    .card-glow:hover {
+      box-shadow: 0 0 0 1px rgba(111, 183, 242, 0.3), 0 8px 40px rgba(111, 183, 242, 0.08);
+      transition: box-shadow 0.3s ease;
+    }
+    .noise {
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.02'/%3E%3C/svg%3E");
+    }
+    .grid-bg {
+      background-image: linear-gradient(rgba(111,183,242,0.03) 1px, transparent 1px),
+                        linear-gradient(90deg, rgba(111,183,242,0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+    }
+    code { font-family: 'JetBrains Mono', monospace; }
+  </style>
+</head>
+<body class="font-sans text-zinc-100 antialiased noise">
+
+  <!-- NAV -->
+  <nav class="fixed top-0 left-0 right-0 z-50 border-b border-border bg-surface/80 backdrop-blur-xl">
+    <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <a href="/" class="flex items-center gap-2">
+          <div class="w-7 h-7 rounded-md bg-zinc-800 flex items-center justify-center border border-zinc-700">
+            <svg class="w-4 h-4 text-brand" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+          </div>
+          <span class="font-bold text-lg tracking-tight text-white uppercase">NexusShell<span class="text-brand">AI</span></span>
+        </a>
+      </div>
+      <div class="hidden md:flex items-center gap-8 text-sm text-zinc-400">
+        <a href="/#technology" class="hover:text-white transition-colors">Technology</a>
+        <a href="/synrail" class="text-white font-medium border-b border-brand">Synrail</a>
+        <a href="/#contact" class="hover:text-white transition-colors">Contact</a>
+      </div>
+      <a href="https://github.com/USBVadik/synrail" target="_blank" class="hidden md:inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-border hover:border-brand/50 text-white text-sm font-medium transition-colors">
+        GitHub
+        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.042-1.416-4.042-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+      </a>
+    </div>
+  </nav>
+
+  <!-- 1. HERO SECTION -->
+  <section class="relative min-h-[80vh] flex items-center justify-center overflow-hidden hero-glow grid-bg pt-24 pb-16">
+    <div class="relative z-10 max-w-5xl mx-auto px-6 text-center">
+      <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-brand/30 bg-brand/5 text-brandlight text-[10px] uppercase tracking-widest font-bold mb-8">
+        <span class="w-1.5 h-1.5 rounded-full bg-brand animate-pulse"></span>
+        Alpha / Developer Tool / AI Infrastructure
+      </div>
+      <h1 class="text-4xl md:text-6xl font-extrabold tracking-tight leading-tight mb-6">
+        Synrail catches <span class="gradient-text text-white">false-green</span> AI-agent work before you accept it.
+      </h1>
+      <p class="text-lg md:text-xl text-zinc-400 font-light max-w-3xl mx-auto mb-10 leading-relaxed">
+        AI coding agents can claim that work is done before the proof is trustworthy. Synrail adds a proof-first control layer that separates agent claims from accepted results.
+      </p>
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+        <a href="https://github.com/USBVadik/synrail" target="_blank" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl bg-brand hover:bg-blue-400 text-surface font-bold text-base transition-all hover:scale-105">
+          View GitHub
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+          </svg>
+        </a>
+        <a href="https://github.com/USBVadik/synrail#readme" target="_blank" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl border border-border hover:border-zinc-500 text-zinc-300 hover:text-white font-semibold text-base transition-all">
+          Read the README
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. PROBLEM SECTION -->
+  <section class="py-24 border-t border-border bg-surface/50">
+    <div class="max-w-7xl mx-auto px-6">
+      <div class="text-center mb-16">
+        <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">The problem: coding agents can look done before they are proven done.</h2>
+        <p class="text-zinc-400 text-lg max-w-3xl mx-auto">AI coding agents are powerful, but they often produce plausible completion narratives before the work is actually verified. They may claim tests passed, show a plausible diff, or leave handoff state unclear while the operator still lacks trustworthy proof.</p>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="card-glow p-6 rounded-2xl border border-border bg-card">
+          <div class="text-brand mb-4">
+            <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+          </div>
+          <h3 class="text-white font-bold mb-2">Phantom Tests</h3>
+          <p class="text-zinc-500 text-sm">Claimed tests that were not actually run or were bypassed by the agent's internal narrative.</p>
+        </div>
+        <div class="card-glow p-6 rounded-2xl border border-border bg-card">
+          <div class="text-brand mb-4">
+            <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+          </div>
+          <h3 class="text-white font-bold mb-2">Mismatched Proof</h3>
+          <p class="text-zinc-500 text-sm">Proof artifacts that do not match the changed files or reflect an older state of the codebase.</p>
+        </div>
+        <div class="card-glow p-6 rounded-2xl border border-border bg-card">
+          <div class="text-brand mb-4">
+            <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
+          </div>
+          <h3 class="text-white font-bold mb-2">Narrative Completion</h3>
+          <p class="text-zinc-500 text-sm">Persuasive explanations of completion instead of concrete, reproducible runtime evidence.</p>
+        </div>
+        <div class="card-glow p-6 rounded-2xl border border-border bg-card">
+          <div class="text-brand mb-4">
+            <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path d="M11 15l-3-3m0 0l3-3m-3 3h8M3 12a9 9 0 1118 0 9 9 0 01-18 0z" /></svg>
+          </div>
+          <h3 class="text-white font-bold mb-2">Broken Handoffs</h3>
+          <p class="text-zinc-500 text-sm">Failed repair cycles that leave the environment in an inconsistent state without a clear next step.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. SOLUTION SECTION -->
+  <section class="py-24 border-t border-border">
+    <div class="max-w-7xl mx-auto px-6">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+        <div>
+          <h2 class="text-3xl md:text-4xl font-bold text-white mb-6">Proof-first acceptance for agentic coding work.</h2>
+          <p class="text-zinc-400 text-lg mb-8">Synrail keeps the boundary between execution and acceptance explicit. An agent saying “done” is not enough. Synrail checks whether proof is real, matched to the task, and verified. If proof is weak, mismatched, stale, or unverified, Synrail blocks acceptance and gives one bounded repair step.</p>
+          <div class="flex items-center gap-4 text-sm font-mono text-zinc-500">
+            <div class="px-3 py-1 rounded bg-zinc-800 border border-zinc-700">Agent Claim</div>
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+            <div class="px-3 py-1 rounded bg-zinc-800 border border-zinc-700">Proof Artifact</div>
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+            <div class="px-3 py-1 rounded bg-brand/10 border border-brand/30 text-brand">Synrail Check</div>
+          </div>
+          <div class="mt-4 flex items-center justify-center lg:justify-start gap-4 text-xs font-mono text-zinc-500 ml-32">
+             <div class="flex flex-col items-center gap-1">
+               <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M19 14l-7 7m0 0l-7-7m7 7V3" /></svg>
+               <span class="text-green-400">Accept</span>
+             </div>
+             <div class="flex flex-col items-center gap-1">
+               <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M19 14l-7 7m0 0l-7-7m7 7V3" /></svg>
+               <span class="text-red-400">Block</span>
+             </div>
+             <div class="flex flex-col items-center gap-1">
+               <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M19 14l-7 7m0 0l-7-7m7 7V3" /></svg>
+               <span class="text-blue-400">Repair</span>
+             </div>
+          </div>
+        </div>
+        <div class="relative">
+          <div class="absolute -inset-4 bg-brand/5 blur-2xl rounded-full"></div>
+          <div class="relative bg-card border border-border rounded-2xl p-8 font-mono text-xs overflow-hidden">
+            <div class="flex items-center gap-2 mb-4 border-b border-border pb-4">
+              <div class="w-3 h-3 rounded-full bg-red-500/20 border border-red-500/40"></div>
+              <div class="w-3 h-3 rounded-full bg-amber-500/20 border border-amber-500/40"></div>
+              <div class="w-3 h-3 rounded-full bg-green-500/20 border border-green-500/40"></div>
+              <span class="text-zinc-600 ml-2">synrail check — output</span>
+            </div>
+            <div class="space-y-2">
+              <p class="text-zinc-400">Loading proof from <span class="text-zinc-200">./.synrail/proof.json</span>...</p>
+              <p class="text-zinc-400">Comparing diff against claimed changes...</p>
+              <p class="text-amber-400">⚠ Proof Mismatch: claimed "Fix bug in parser" but diff shows "Update README"</p>
+              <p class="text-red-400 font-bold mt-4">Status: Rejected (False-Green Detected)</p>
+              <p class="text-zinc-400 mt-2">Recommended repair: "Ensure the actual code changes match the reported intent before claiming success."</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. HOW IT WORKS SECTION -->
+  <section class="py-24 border-t border-border bg-card/20">
+    <div class="max-w-5xl mx-auto px-6">
+      <h2 class="text-3xl font-bold text-white text-center mb-16">How Synrail works</h2>
+      <div class="space-y-12">
+        <div class="flex gap-6">
+          <div class="flex-shrink-0 w-10 h-10 rounded-full bg-brand/10 border border-brand/30 flex items-center justify-center text-brand font-bold">1</div>
+          <div>
+            <h3 class="text-white font-bold text-lg mb-2">Start a bounded agent task</h3>
+            <p class="text-zinc-400">Initialize a task scope that the agent must work within.</p>
+          </div>
+        </div>
+        <div class="flex gap-6">
+          <div class="flex-shrink-0 w-10 h-10 rounded-full bg-brand/10 border border-brand/30 flex items-center justify-center text-brand font-bold">2</div>
+          <div>
+            <h3 class="text-white font-bold text-lg mb-2">Produce explicit proof artifacts</h3>
+            <p class="text-zinc-400">The agent generates machine-readable proof: test results, trace logs, and verified diffs.</p>
+          </div>
+        </div>
+        <div class="flex gap-6">
+          <div class="flex-shrink-0 w-10 h-10 rounded-full bg-brand/10 border border-brand/30 flex items-center justify-center text-brand font-bold">3</div>
+          <div>
+            <h3 class="text-white font-bold text-lg mb-2">Run Synrail check as the acceptance gate</h3>
+            <p class="text-zinc-400">Validate the artifacts against the actual state of the workspace.</p>
+          </div>
+        </div>
+        <div class="flex gap-6">
+          <div class="flex-shrink-0 w-10 h-10 rounded-full bg-brand/10 border border-brand/30 flex items-center justify-center text-brand font-bold">4</div>
+          <div>
+            <h3 class="text-white font-bold text-lg mb-2">Repair or Accept</h3>
+            <p class="text-zinc-400">If non-green, repair only the named gap and check again until success.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-16 space-y-6">
+        <div class="p-6 bg-surface border border-border rounded-xl">
+          <p class="text-zinc-500 text-xs font-mono mb-3 tracking-widest uppercase">Quick Install</p>
+          <pre class="text-sm font-mono text-brandlight overflow-x-auto"><code>git clone https://github.com/USBVadik/synrail
+cd synrail
+make install-dev
+make demo</code></pre>
+        </div>
+        <div class="p-6 bg-surface border border-border rounded-xl">
+          <p class="text-zinc-500 text-xs font-mono mb-3 tracking-widest uppercase">Standard Workflow</p>
+          <pre class="text-sm font-mono text-brandlight overflow-x-auto"><code>synrail start "Describe the bounded local change"
+# agent works...
+synrail check</code></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5. WHO IT IS FOR SECTION -->
+  <section class="py-24 border-t border-border">
+    <div class="max-w-7xl mx-auto px-6">
+      <h2 class="text-3xl font-bold text-white text-center mb-16">Built for developers using AI coding agents</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="p-8 rounded-2xl border border-border bg-card/40">
+          <h3 class="text-white font-bold text-xl mb-4">Tool Operators</h3>
+          <p class="text-zinc-400">Developers using Claude Code, Cursor, Aider, Gemini CLI, or custom agentic loops who want to automate the verification of "done" claims.</p>
+        </div>
+        <div class="p-8 rounded-2xl border border-border bg-card/40">
+          <h3 class="text-white font-bold text-xl mb-4">Engineering Teams</h3>
+          <p class="text-zinc-400">Teams running repeated small AI-assisted code changes where manual verification of every diff is becoming a bottleneck.</p>
+        </div>
+        <div class="p-8 rounded-2xl border border-border bg-card/40">
+          <h3 class="text-white font-bold text-xl mb-4">Quality-First Hackers</h3>
+          <p class="text-zinc-400">Operators who still manually verify agent work but want a tool to catch the "easy" hallucinations before they look at the code.</p>
+        </div>
+        <div class="p-8 rounded-2xl border border-border bg-card/40">
+          <h3 class="text-white font-bold text-xl mb-4">Second Operators</h3>
+          <p class="text-zinc-400">Developers inheriting a failed repair from an AI agent who need an explicit handoff state to continue safely.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6. WHAT SYNRAIL DOES SECTION -->
+  <section class="py-24 border-t border-border bg-surface/30">
+    <div class="max-w-4xl mx-auto px-6">
+      <h2 class="text-3xl font-bold text-white mb-12">What Synrail does</h2>
+      <ul class="space-y-6">
+        <li class="flex items-start gap-4">
+          <div class="mt-1.5 w-2 h-2 rounded-full bg-brand shadow-[0_0_8px_rgba(111,183,242,0.6)]"></div>
+          <p class="text-zinc-300">Blocks claimed-done closure until proof reaches accepted status.</p>
+        </li>
+        <li class="flex items-start gap-4">
+          <div class="mt-1.5 w-2 h-2 rounded-full bg-brand shadow-[0_0_8px_rgba(111,183,242,0.6)]"></div>
+          <p class="text-zinc-300">Keeps proof on explicit artifacts instead of narrative trust.</p>
+        </li>
+        <li class="flex items-start gap-4">
+          <div class="mt-1.5 w-2 h-2 rounded-full bg-brand shadow-[0_0_8px_rgba(111,183,242,0.6)]"></div>
+          <p class="text-zinc-300">Names the exact proof repair when acceptance is blocked.</p>
+        </li>
+        <li class="flex items-start gap-4">
+          <div class="mt-1.5 w-2 h-2 rounded-full bg-brand shadow-[0_0_8px_rgba(111,183,242,0.6)]"></div>
+          <p class="text-zinc-300">Preserves trusted local recovery points when they exist.</p>
+        </li>
+        <li class="flex items-start gap-4">
+          <div class="mt-1.5 w-2 h-2 rounded-full bg-brand shadow-[0_0_8px_rgba(111,183,242,0.6)]"></div>
+          <p class="text-zinc-300">Supports bounded continuation and second-operator handoff.</p>
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 7. CURRENT STATUS SECTION -->
+  <section class="py-24 border-t border-border">
+    <div class="max-w-4xl mx-auto px-6">
+      <div class="p-8 rounded-2xl border border-amber-500/20 bg-amber-500/5">
+        <h2 class="text-2xl font-bold text-amber-200 mb-4 flex items-center gap-2">
+          <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+          Current status
+        </h2>
+        <p class="text-amber-100/70 leading-relaxed">
+          Synrail is currently a narrow local alpha product. It is focused on one local trusted worktree, one bounded local agent task, explicit proof artifacts, and <code class="bg-amber-500/10 px-1 rounded text-amber-200">synrail check</code> as the acceptance gate. It is not yet a broad hosted orchestration platform, a generic CI/CD replacement, or a universal correctness system.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 8. WHY NEXUSSHELLAI SECTION -->
+  <section class="py-24 border-t border-border">
+    <div class="max-w-4xl mx-auto px-6 text-center">
+      <h2 class="text-3xl font-bold text-white mb-6">Why NexusshellAI is building Synrail</h2>
+      <p class="text-zinc-400 text-lg leading-relaxed">
+        NexusshellAI is building developer infrastructure for safer AI-assisted software work. As coding agents become more capable, teams need better control over when generated work is allowed to be trusted. Synrail is our first product in that direction: a focused reliability layer for proof, acceptance, bounded repair, and handoff.
+      </p>
+    </div>
+  </section>
+
+  <!-- 9. CLOUD / AI INFRA RELEVANCE SECTION -->
+  <section class="py-24 border-t border-border bg-card/20">
+    <div class="max-w-4xl mx-auto px-6">
+      <h2 class="text-3xl font-bold text-white mb-6">Designed for AI coding-agent infrastructure</h2>
+      <p class="text-zinc-400 text-lg leading-relaxed">
+        Synrail is model-agnostic and can be used around different coding-agent workflows. As the product evolves, NexusshellAI plans to evaluate larger model-inference and agent-reliability workloads, including coding-model evaluation, proof-quality checks, false-green detection benchmarks, and multi-agent repair/handoff scenarios.
+      </p>
+    </div>
+  </section>
+
+  <!-- 10. FOOTER CTA -->
+  <section class="py-32 border-t border-border text-center">
+    <div class="max-w-xl mx-auto px-6">
+      <h2 class="text-4xl font-bold text-white mb-6">Try Synrail</h2>
+      <p class="text-zinc-400 mb-10">Start with the public alpha repo and run the false-green demo.</p>
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+        <a href="https://github.com/USBVadik/synrail" target="_blank" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl bg-brand hover:bg-blue-400 text-surface font-bold text-base transition-all">
+          GitHub
+        </a>
+        <a href="https://github.com/USBVadik/synrail#readme" target="_blank" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl border border-border hover:border-zinc-500 text-zinc-300 hover:text-white font-semibold text-base transition-all">
+          README
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="border-t border-border py-12">
+    <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6">
+      <div class="flex items-center gap-2">
+        <div class="w-7 h-7 rounded-md bg-zinc-800 flex items-center justify-center border border-zinc-700">
+          <svg class="w-4 h-4 text-brand" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+          </svg>
+        </div>
+        <span class="font-bold text-white uppercase tracking-tight">NexusShell<span class="text-brand">AI</span></span>
+      </div>
+      <p class="text-zinc-600 text-sm">© 2026 NexusshellAI. All rights reserved.</p>
+    </div>
+  </footer>
+
+</body>
+</html>
