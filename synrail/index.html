@@ -72,6 +72,7 @@
       <div class="hidden md:flex items-center gap-8 text-sm text-zinc-400">
         <a href="/#technology" class="hover:text-white transition-colors">Technology</a>
         <a href="/synrail" class="text-white font-medium border-b border-brand">Synrail</a>
+        <a href="/#transparency" class="hover:text-white transition-colors">Team</a>
         <a href="/#contact" class="hover:text-white transition-colors">Contact</a>
       </div>
       <a href="https://github.com/USBVadik/synrail" target="_blank" class="hidden md:inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-border hover:border-brand/50 text-white text-sm font-medium transition-colors">
@@ -86,7 +87,7 @@
     <div class="relative z-10 max-w-5xl mx-auto px-6 text-center">
       <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-brand/30 bg-brand/5 text-brandlight text-[10px] uppercase tracking-widest font-bold mb-8">
         <span class="w-1.5 h-1.5 rounded-full bg-brand animate-pulse"></span>
-        Alpha / Developer Tool / AI Infrastructure
+        Public alpha / Developer tool / AI-agent reliability
       </div>
       <h1 class="text-4xl md:text-6xl font-extrabold tracking-tight leading-tight mb-6">
         Synrail catches <span class="gradient-text text-white">false-green</span> AI-agent work before you accept it.
@@ -102,7 +103,7 @@
           </svg>
         </a>
         <a href="https://github.com/USBVadik/synrail#readme" target="_blank" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl border border-border hover:border-zinc-500 text-zinc-300 hover:text-white font-semibold text-base transition-all">
-          Read the README
+          Run the demo
         </a>
       </div>
     </div>
@@ -148,7 +149,26 @@
     </div>
   </section>
 
-  <!-- 3. SOLUTION SECTION -->
+  <!-- 3. SKEPTIC SECTION -->
+  <section class="py-24 border-t border-border">
+    <div class="max-w-5xl mx-auto px-6">
+      <div class="grid grid-cols-1 lg:grid-cols-[0.8fr_1.2fr] gap-10">
+        <div>
+          <p class="text-brand font-mono text-xs uppercase tracking-[0.22em] font-bold mb-3">The honest boundary</p>
+          <h2 class="text-3xl md:text-4xl font-bold text-white">Is this just post-review?</h2>
+        </div>
+        <div class="space-y-6 text-zinc-400 text-lg leading-relaxed">
+          <p>Not exactly. A normal post-review asks whether the code is good. Synrail asks a narrower question first: whether the agent is allowed to claim the task is done.</p>
+          <p>If you personally read every diff, run every check, and track every agent step, Synrail may be unnecessary overhead. In that case, you are already acting as Synrail manually.</p>
+          <div class="p-6 rounded-2xl border border-brand/25 bg-brand/10 text-brandlight">
+            Synrail becomes useful when you stop being the runtime supervisor: repeated runs, long context, failed repairs, second-operator handoff, or proof-sensitive changes.
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. SOLUTION SECTION -->
   <section class="py-24 border-t border-border">
     <div class="max-w-7xl mx-auto px-6">
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
@@ -199,7 +219,7 @@
     </div>
   </section>
 
-  <!-- 4. HOW IT WORKS SECTION -->
+  <!-- 5. HOW IT WORKS SECTION -->
   <section class="py-24 border-t border-border bg-card/20">
     <div class="max-w-5xl mx-auto px-6">
       <h2 class="text-3xl font-bold text-white text-center mb-16">How Synrail works</h2>
@@ -252,7 +272,7 @@ synrail check</code></pre>
     </div>
   </section>
 
-  <!-- 5. WHO IT IS FOR SECTION -->
+  <!-- 6. WHO IT IS FOR SECTION -->
   <section class="py-24 border-t border-border">
     <div class="max-w-7xl mx-auto px-6">
       <h2 class="text-3xl font-bold text-white text-center mb-16">Built for developers using AI coding agents</h2>
@@ -277,7 +297,7 @@ synrail check</code></pre>
     </div>
   </section>
 
-  <!-- 6. WHAT SYNRAIL DOES SECTION -->
+  <!-- 7. WHAT SYNRAIL DOES SECTION -->
   <section class="py-24 border-t border-border bg-surface/30">
     <div class="max-w-4xl mx-auto px-6">
       <h2 class="text-3xl font-bold text-white mb-12">What Synrail does</h2>
@@ -306,7 +326,7 @@ synrail check</code></pre>
     </div>
   </section>
 
-  <!-- 7. CURRENT STATUS SECTION -->
+  <!-- 8. CURRENT STATUS SECTION -->
   <section class="py-24 border-t border-border">
     <div class="max-w-4xl mx-auto px-6">
       <div class="p-8 rounded-2xl border border-amber-500/20 bg-amber-500/5">
@@ -315,23 +335,42 @@ synrail check</code></pre>
           Current status
         </h2>
         <p class="text-amber-100/70 leading-relaxed">
-          Synrail is currently a narrow local alpha product. It is focused on one local trusted worktree, one bounded local agent task, explicit proof artifacts, and <code class="bg-amber-500/10 px-1 rounded text-amber-200">synrail check</code> as the acceptance gate. It is not yet a broad hosted orchestration platform, a generic CI/CD replacement, or a universal correctness system.
+          Synrail is currently a narrow public local alpha product. It is focused on one local trusted worktree, one bounded local agent task, explicit proof artifacts, and <code class="bg-amber-500/10 px-1 rounded text-amber-200">synrail check</code> as the acceptance gate. It is not yet a broad hosted orchestration platform, a generic CI/CD replacement, or a universal correctness system.
         </p>
       </div>
     </div>
   </section>
 
-  <!-- 8. WHY NEXUSSHELLAI SECTION -->
-  <section class="py-24 border-t border-border">
-    <div class="max-w-4xl mx-auto px-6 text-center">
-      <h2 class="text-3xl font-bold text-white mb-6">Why NexusshellAI is building Synrail</h2>
-      <p class="text-zinc-400 text-lg leading-relaxed">
-        NexusshellAI is building developer infrastructure for safer AI-assisted software work. As coding agents become more capable, teams need better control over when generated work is allowed to be trusted. Synrail is our first product in that direction: a focused reliability layer for proof, acceptance, bounded repair, and handoff.
-      </p>
+  <!-- 9. WHY NEXUSSHELLAI SECTION -->
+  <section id="transparency" class="py-24 border-t border-border">
+    <div class="max-w-5xl mx-auto px-6">
+      <div class="max-w-3xl">
+        <h2 class="text-3xl font-bold text-white mb-6">Why NexusShellAI is building Synrail</h2>
+        <p class="text-zinc-400 text-lg leading-relaxed">
+          NexusShellAI is building developer infrastructure for safer AI-assisted software work. Synrail is the current public product: a focused reliability layer for proof, acceptance, bounded repair, and handoff.
+        </p>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mt-10">
+        <a href="https://github.com/USBVadik" target="_blank" class="p-6 rounded-2xl border border-border bg-card/70 hover:border-brand/50 transition-colors">
+          <p class="text-zinc-500 font-mono text-xs uppercase tracking-[0.18em] mb-3">Founder / maintainer</p>
+          <h3 class="text-white font-bold text-xl">Vadik / USBVadik</h3>
+          <p class="text-zinc-500 text-sm mt-3">Public GitHub profile and project owner.</p>
+        </a>
+        <a href="https://github.com/USBVadik/synrail" target="_blank" class="p-6 rounded-2xl border border-border bg-card/70 hover:border-brand/50 transition-colors">
+          <p class="text-zinc-500 font-mono text-xs uppercase tracking-[0.18em] mb-3">Live product</p>
+          <h3 class="text-white font-bold text-xl">Synrail repository</h3>
+          <p class="text-zinc-500 text-sm mt-3">Source, issues, demo, CI, and alpha feedback loop.</p>
+        </a>
+        <a href="https://x.com/a_seven_life" target="_blank" class="p-6 rounded-2xl border border-border bg-card/70 hover:border-brand/50 transition-colors">
+          <p class="text-zinc-500 font-mono text-xs uppercase tracking-[0.18em] mb-3">Public updates</p>
+          <h3 class="text-white font-bold text-xl">@a_seven_life</h3>
+          <p class="text-zinc-500 text-sm mt-3">Build-in-public notes and false-green research threads.</p>
+        </a>
+      </div>
     </div>
   </section>
 
-  <!-- 9. CLOUD / AI INFRA RELEVANCE SECTION -->
+  <!-- 10. CLOUD / AI INFRA RELEVANCE SECTION -->
   <section class="py-24 border-t border-border bg-card/20">
     <div class="max-w-4xl mx-auto px-6">
       <h2 class="text-3xl font-bold text-white mb-6">Designed for AI coding-agent infrastructure</h2>
@@ -341,7 +380,7 @@ synrail check</code></pre>
     </div>
   </section>
 
-  <!-- 10. FOOTER CTA -->
+  <!-- 11. FOOTER CTA -->
   <section class="py-32 border-t border-border text-center">
     <div class="max-w-xl mx-auto px-6">
       <h2 class="text-4xl font-bold text-white mb-6">Try Synrail</h2>

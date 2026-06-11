@@ -3,902 +3,301 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>USBAGENT — Multi-Model AI Orchestration Engine</title>
+  <title>Synrail by NexusShellAI - proof gate for AI coding agents</title>
+  <meta name="description" content="Synrail catches false-green AI-agent work before you accept it. A public alpha proof gate for Claude Code, Cursor, Codex, Gemini CLI, Aider, and custom agent loops." />
+  <meta property="og:title" content="Synrail - catch false-green AI-agent work before you accept it" />
+  <meta property="og:description" content="A local proof gate that separates claimed_done from accepted_done for AI coding agents." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://nexusshell.dev/" />
+  <meta name="twitter:card" content="summary_large_image" />
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
       theme: {
         extend: {
           colors: {
-            brand: '#7C3AED',
-            brandlight: '#A78BFA',
-            surface: '#0F0F11',
-            card: '#18181B',
-            border: '#27272A',
+            ink: '#080A0F',
+            surface: '#0E1118',
+            card: '#141925',
+            line: '#273044',
+            rail: '#6FB7F2',
+            railsoft: '#A5D7FF',
+            mint: '#8CF5B8',
+            warn: '#FFD28A',
+            danger: '#FF8AA8'
           },
           fontFamily: {
             sans: ['Inter', 'ui-sans-serif', 'system-ui'],
-            mono: ['JetBrains Mono', 'ui-monospace', 'monospace'],
+            mono: ['JetBrains Mono', 'ui-monospace', 'SFMono-Regular', 'monospace']
           },
-        },
-      },
+          boxShadow: {
+            rail: '0 0 0 1px rgba(111,183,242,.28), 0 24px 80px rgba(24,99,186,.16)'
+          }
+        }
+      }
     };
   </script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet" />
   <style>
-    body { background-color: #0F0F11; }
+    body { background: #080A0F; }
+    .grid-bg {
+      background-image:
+        radial-gradient(circle at 20% 0%, rgba(111,183,242,.18), transparent 30rem),
+        radial-gradient(circle at 82% 20%, rgba(140,245,184,.08), transparent 26rem),
+        linear-gradient(rgba(111,183,242,.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(111,183,242,.035) 1px, transparent 1px);
+      background-size: auto, auto, 42px 42px, 42px 42px;
+    }
+    .noise::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: .035;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      z-index: 60;
+    }
     .gradient-text {
-      background: linear-gradient(135deg, #A78BFA 0%, #60A5FA 50%, #34D399 100%);
+      background: linear-gradient(135deg, #A5D7FF 0%, #6FB7F2 45%, #8CF5B8 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
     }
-    .hero-glow {
-      background: radial-gradient(ellipse 80% 50% at 50% -10%, rgba(124, 58, 237, 0.25), transparent);
-    }
-    .card-glow:hover {
-      box-shadow: 0 0 0 1px rgba(124, 58, 237, 0.4), 0 8px 40px rgba(124, 58, 237, 0.12);
-      transition: box-shadow 0.3s ease;
-    }
-    .badge-glow {
-      box-shadow: 0 0 12px rgba(124, 58, 237, 0.3);
-    }
-    .noise {
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
-    }
-    .grid-bg {
-      background-image: linear-gradient(rgba(124,58,237,0.04) 1px, transparent 1px),
-                        linear-gradient(90deg, rgba(124,58,237,0.04) 1px, transparent 1px);
-      background-size: 48px 48px;
-    }
-    input, textarea {
-      background-color: #18181B;
-      border: 1px solid #27272A;
-      color: #F4F4F5;
-      transition: border-color 0.2s;
-    }
-    input:focus, textarea:focus {
-      outline: none;
-      border-color: #7C3AED;
-      box-shadow: 0 0 0 3px rgba(124,58,237,0.15);
-    }
-    input::placeholder, textarea::placeholder { color: #52525B; }
-
-    /* ── Blueprint cards ── */
-    .blueprint-card {
-      position: relative;
-      border-radius: 1.25rem;
-      overflow: hidden;
-      border: 1px solid rgba(124, 58, 237, 0.25);
-      background: rgba(24, 24, 27, 0.6);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      transition: box-shadow 0.35s ease, border-color 0.35s ease, transform 0.35s ease;
-    }
-    .blueprint-card:hover {
-      border-color: rgba(124, 58, 237, 0.65);
-      box-shadow:
-        0 0 0 1px rgba(124, 58, 237, 0.5),
-        0 0 40px rgba(124, 58, 237, 0.18),
-        0 20px 60px rgba(0, 0, 0, 0.5);
-      transform: translateY(-4px);
-    }
-    .blueprint-img-wrap {
-      overflow: hidden;
-      position: relative;
-    }
-    .blueprint-img-wrap::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(180deg, transparent 55%, rgba(15,15,17,0.95) 100%);
-      pointer-events: none;
-    }
-    .blueprint-img-wrap img {
-      width: 100%;
-      display: block;
-      transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    }
-    .blueprint-card:hover .blueprint-img-wrap img {
-      transform: scale(1.06);
-    }
-    .blueprint-scan-line {
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 2px;
-      background: linear-gradient(90deg, transparent, rgba(124,58,237,0.8), transparent);
-      opacity: 0;
-      transition: opacity 0.3s ease;
-      animation: none;
-    }
-    .blueprint-card:hover .blueprint-scan-line {
-      opacity: 1;
-      animation: scan 1.8s linear infinite;
-    }
-    @keyframes scan {
-      0%   { top: 0; }
-      100% { top: 100%; }
-    }
-    .blueprint-tag {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.375rem;
-      padding: 0.25rem 0.625rem;
-      border-radius: 9999px;
-      font-size: 0.65rem;
-      font-family: 'JetBrains Mono', monospace;
-      font-weight: 600;
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
-      border: 1px solid rgba(124,58,237,0.3);
-      background: rgba(124,58,237,0.1);
-      color: #A78BFA;
-    }
-    .view-details-btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.5rem;
-      width: 100%;
-      padding: 0.75rem 1.25rem;
-      border-radius: 0.75rem;
-      border: 1px solid rgba(124,58,237,0.35);
-      background: rgba(124,58,237,0.08);
-      color: #A78BFA;
-      font-size: 0.8125rem;
-      font-weight: 600;
-      letter-spacing: 0.03em;
-      cursor: pointer;
-      transition: background 0.25s ease, border-color 0.25s ease, color 0.25s ease, box-shadow 0.25s ease;
-      font-family: 'JetBrains Mono', monospace;
-    }
-    .view-details-btn:hover {
-      background: rgba(124,58,237,0.22);
-      border-color: rgba(124,58,237,0.7);
-      color: #fff;
-      box-shadow: 0 0 18px rgba(124,58,237,0.25);
-    }
-
-    /* ── Blueprint section glow bg ── */
-    .blueprints-glow {
-      background: radial-gradient(ellipse 70% 40% at 50% 50%, rgba(124,58,237,0.07), transparent);
-    }
-
-    /* ── PDF download button ── */
-    .pdf-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      padding: 0.625rem 1.25rem;
-      border-radius: 0.75rem;
-      border: 1px solid rgba(124,58,237,0.4);
-      background: rgba(124,58,237,0.1);
-      color: #A78BFA;
-      font-size: 0.8125rem;
-      font-weight: 600;
-      text-decoration: none;
-      transition: background 0.25s ease, border-color 0.25s ease, color 0.25s ease, box-shadow 0.25s ease;
-      white-space: nowrap;
-    }
-    .pdf-btn:hover {
-      background: rgba(124,58,237,0.25);
-      border-color: rgba(124,58,237,0.75);
-      color: #fff;
-      box-shadow: 0 0 20px rgba(124,58,237,0.3);
-    }
+    .terminal-line { display: block; }
+    .terminal-line::before { content: "> "; color: #6FB7F2; }
+    .rail-card { background: linear-gradient(180deg, rgba(20,25,37,.92), rgba(12,15,22,.92)); }
   </style>
 </head>
-<body class="font-sans text-zinc-100 antialiased">
-
-  <!-- NAV -->
-  <nav class="fixed top-0 left-0 right-0 z-50 border-b border-border bg-surface/80 backdrop-blur-xl">
-    <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-      <div class="flex items-center gap-2">
-        <a href="/" class="flex items-center gap-2">
-          <div class="w-7 h-7 rounded-md bg-brand flex items-center justify-center">
-            <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
-            </svg>
-          </div>
-          <span class="font-bold text-lg tracking-tight text-white uppercase">NexusShell<span class="text-brandlight">AI</span></span>
-        </a>
-      </div>
-      <div class="hidden md:flex items-center gap-8 text-sm text-zinc-400">
-        <a href="#technology" class="hover:text-white transition-colors">Technology</a>
-        <a href="/synrail" class="hover:text-white transition-colors">Synrail</a>
-        <a href="#features" class="hover:text-white transition-colors">Features</a>
-        <a href="#blueprints" class="hover:text-white transition-colors">Blueprints</a>
-        <a href="#contact" class="hover:text-white transition-colors">Contact</a>
-      </div>
-      <a href="#contact" class="hidden md:inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-brand hover:bg-violet-500 text-white text-sm font-medium transition-colors">
-        Request Access
-        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
-        </svg>
+<body class="noise font-sans text-zinc-100 antialiased grid-bg">
+  <nav class="fixed inset-x-0 top-0 z-50 border-b border-line/80 bg-ink/78 backdrop-blur-xl">
+    <div class="mx-auto flex h-16 max-w-7xl items-center justify-between px-5 sm:px-6">
+      <a href="#top" class="flex items-center gap-3" aria-label="Synrail home">
+        <div class="grid h-9 w-9 place-items-center rounded-xl border border-rail/30 bg-rail/10 shadow-rail">
+          <span class="font-mono text-lg font-bold text-rail">S</span>
+        </div>
+        <div>
+          <div class="text-sm font-extrabold uppercase tracking-[0.22em] text-white">Synrail</div>
+          <div class="text-[10px] uppercase tracking-[0.18em] text-zinc-500">by NexusShellAI</div>
+        </div>
       </a>
+      <div class="hidden items-center gap-7 text-sm text-zinc-400 md:flex">
+        <a href="#demo" class="transition hover:text-white">Demo</a>
+        <a href="#why" class="transition hover:text-white">Why</a>
+        <a href="#use" class="transition hover:text-white">Use cases</a>
+        <a href="#run" class="transition hover:text-white">Run locally</a>
+        <a href="#transparency" class="transition hover:text-white">Team</a>
+      </div>
+      <a href="https://github.com/USBVadik/synrail" target="_blank" rel="noopener" class="rounded-xl border border-rail/35 px-4 py-2 text-sm font-semibold text-railsoft transition hover:border-rail hover:bg-rail/10 hover:text-white">GitHub</a>
     </div>
   </nav>
 
-  <!-- HERO -->
-  <section class="relative min-h-screen flex items-center justify-center overflow-hidden hero-glow grid-bg noise pt-16">
-    <div class="absolute inset-0 pointer-events-none">
-      <div class="absolute top-1/4 left-1/2 -translate-x-1/2 w-[900px] h-[500px] bg-brand/10 rounded-full blur-3xl"></div>
-    </div>
-    <div class="relative z-10 max-w-5xl mx-auto px-6 text-center py-32">
-      <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-brand/40 bg-brand/10 text-brandlight text-xs font-medium mb-8 badge-glow">
-        <span class="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"></span>
-        Now in Private Beta — Powered by Gemini 2.5 Flash
-      </div>
-      <h1 class="text-5xl md:text-7xl font-extrabold tracking-tight leading-tight mb-6">
-        <span class="text-white">USBAGENT:</span><br />
-        <span class="gradient-text">Multi-Model AI<br />Orchestration Engine</span>
-      </h1>
-      <p class="text-xl md:text-2xl text-zinc-400 font-light max-w-3xl mx-auto mb-10 leading-relaxed">
-        Scaling Enterprise intelligence with <span class="text-white font-medium">Gemini 2.5</span> and <span class="text-white font-medium">VEO Cinematic Video</span>. One unified platform for reasoning, memory, and multimodal generation at scale.
-      </p>
-      <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
-        <a href="#contact" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl bg-brand hover:bg-violet-500 text-white font-semibold text-base transition-all hover:scale-105 hover:shadow-lg hover:shadow-brand/30">
-          Request Early Access
-          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
-          </svg>
-        </a>
-        <a href="#features" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl border border-border hover:border-zinc-500 text-zinc-300 hover:text-white font-semibold text-base transition-all">
-          Explore Features
-        </a>
-      </div>
-      <!-- Stats -->
-      <div class="mt-20 grid grid-cols-2 md:grid-cols-4 gap-6 border-t border-border pt-12">
-        <div class="text-center">
-          <div class="text-3xl font-bold text-white">2.5M+</div>
-          <div class="text-sm text-zinc-500 mt-1">Token Context Window</div>
-        </div>
-        <div class="text-center">
-          <div class="text-3xl font-bold text-white">&lt;200ms</div>
-          <div class="text-sm text-zinc-500 mt-1">Avg. Response Latency</div>
-        </div>
-        <div class="text-center">
-          <div class="text-3xl font-bold text-white">99.9%</div>
-          <div class="text-sm text-zinc-500 mt-1">Uptime SLA</div>
-        </div>
-        <div class="text-center">
-          <div class="text-3xl font-bold text-white">12+</div>
-          <div class="text-sm text-zinc-500 mt-1">Integrated AI Models</div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- WHAT WE'RE BUILDING -->
-  <section id="product" class="py-28 border-t border-border bg-card/20">
-    <div class="max-w-7xl mx-auto px-6">
-      <div class="text-center mb-16">
-        <p class="text-brand text-sm font-semibold uppercase tracking-widest mb-3">Product</p>
-        <h2 class="text-4xl md:text-5xl font-bold text-white">What we’re building</h2>
-        <p class="text-zinc-400 mt-4 text-lg max-w-2xl mx-auto">Focused developer infrastructure for the next generation of AI-assisted software work.</p>
-      </div>
-
-      <div class="max-w-4xl mx-auto">
-        <div class="card-glow rounded-2xl border border-border bg-card p-8 md:p-12 flex flex-col md:flex-row gap-8 items-center">
-          <div class="w-24 h-24 shrink-0 rounded-2xl bg-[#6FB7F2]/10 border border-[#6FB7F2]/20 flex items-center justify-center">
-            <svg class="w-12 h-12 text-[#6FB7F2]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-            </svg>
+  <main id="top">
+    <section class="relative overflow-hidden pt-32 pb-20 sm:pt-40 sm:pb-28">
+      <div class="mx-auto grid max-w-7xl items-center gap-12 px-5 sm:px-6 lg:grid-cols-[1.05fr_.95fr]">
+        <div>
+          <div class="mb-7 inline-flex items-center gap-2 rounded-full border border-rail/30 bg-rail/10 px-3 py-1.5 font-mono text-[11px] font-semibold uppercase tracking-[0.18em] text-railsoft">
+            <span class="h-1.5 w-1.5 rounded-full bg-mint"></span>
+            Public alpha / Apache-2.0 / local CLI
           </div>
-          <div class="flex-1 text-center md:text-left">
-            <div class="flex flex-col md:flex-row md:items-center gap-3 mb-4">
-              <h3 class="text-white font-bold text-2xl">Synrail</h3>
-              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full bg-[#6FB7F2]/10 text-[#6FB7F2] text-xs font-mono font-bold border border-[#6FB7F2]/20 w-fit mx-auto md:mx-0">Alpha</span>
+          <h1 class="max-w-4xl text-5xl font-extrabold leading-[0.96] tracking-tight text-white sm:text-6xl lg:text-7xl">
+            Catch <span class="gradient-text">false-green</span> AI-agent work before you accept it.
+          </h1>
+          <p class="mt-7 max-w-2xl text-lg leading-8 text-zinc-400 sm:text-xl">
+            Synrail is a local proof gate for coding agents. It does not write code. It asks whether the agent is allowed to claim the task is done.
+          </p>
+          <div class="mt-8 flex flex-col gap-3 sm:flex-row">
+            <a href="https://github.com/USBVadik/synrail#readme" target="_blank" rel="noopener" class="inline-flex items-center justify-center rounded-xl bg-rail px-6 py-3.5 font-bold text-ink transition hover:bg-railsoft">Run the GitHub demo</a>
+            <a href="#run" class="inline-flex items-center justify-center rounded-xl border border-line bg-card/70 px-6 py-3.5 font-semibold text-zinc-200 transition hover:border-rail/60 hover:text-white">Install in 2 minutes</a>
+          </div>
+          <div class="mt-8 grid max-w-2xl grid-cols-2 gap-3 sm:grid-cols-4">
+            <div class="rounded-2xl border border-line bg-card/60 p-4">
+              <div class="font-mono text-lg font-bold text-mint">Open</div>
+              <div class="mt-1 text-xs text-zinc-500">Apache-2.0</div>
             </div>
-            <p class="text-zinc-300 text-lg mb-6 leading-relaxed">
-              Proof-first control for AI coding agents. Synrail catches false-green AI-agent work before teams accept it. It checks whether proof is real, matched to the task, and verified.
-            </p>
-            <a href="/synrail" class="inline-flex items-center gap-2 text-[#6FB7F2] font-semibold hover:text-blue-300 transition-colors">
-              Explore Synrail
-              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
-              </svg>
-            </a>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- TECHNOLOGY STACK -->
-  <section id="technology" class="py-28 border-t border-border">
-    <div class="max-w-7xl mx-auto px-6">
-      <div class="text-center mb-16">
-        <p class="text-brand text-sm font-semibold uppercase tracking-widest mb-3">Infrastructure</p>
-        <h2 class="text-4xl md:text-5xl font-bold text-white">Built on World-Class Technology</h2>
-        <p class="text-zinc-400 mt-4 text-lg max-w-2xl mx-auto">Enterprise-grade AI infrastructure powered by the most advanced platforms available.</p>
-      </div>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-
-        <!-- Google Vertex AI -->
-        <div class="card-glow rounded-2xl border border-border bg-card p-8 flex flex-col gap-5">
-          <div class="w-12 h-12 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
-            <svg class="w-6 h-6 text-blue-400" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
-            </svg>
-          </div>
-          <div>
-            <div class="flex items-center gap-2 mb-2">
-              <span class="text-white font-semibold text-lg">Google Vertex AI</span>
-              <span class="px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 text-xs font-medium border border-blue-500/20">Active</span>
+            <div class="rounded-2xl border border-line bg-card/60 p-4">
+              <div class="font-mono text-lg font-bold text-railsoft">Local</div>
+              <div class="mt-1 text-xs text-zinc-500">No hosted lock-in</div>
             </div>
-            <p class="text-zinc-400 text-sm leading-relaxed">Gemini 2.5 Flash &amp; Pro via Vertex AI. Full access to Google's most capable multimodal models with enterprise SLAs and data residency controls.</p>
-          </div>
-          <div class="mt-auto pt-4 border-t border-border flex flex-wrap gap-2">
-            <span class="px-2.5 py-1 rounded-md bg-zinc-800 text-zinc-300 text-xs font-mono">gemini-2.5-flash</span>
-            <span class="px-2.5 py-1 rounded-md bg-zinc-800 text-zinc-300 text-xs font-mono">VEO 2.0</span>
-            <span class="px-2.5 py-1 rounded-md bg-zinc-800 text-zinc-300 text-xs font-mono">Imagen 3</span>
-          </div>
-        </div>
-
-        <!-- NVIDIA CUDA -->
-        <div class="card-glow rounded-2xl border border-border bg-card p-8 flex flex-col gap-5">
-          <div class="w-12 h-12 rounded-xl bg-green-500/10 border border-green-500/20 flex items-center justify-center">
-            <svg class="w-6 h-6 text-green-400" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M4 6a2 2 0 012-2h12a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm2 0v12h12V6H6zm2 2h8v2H8V8zm0 4h8v2H8v-2z"/>
-            </svg>
-          </div>
-          <div>
-            <div class="flex items-center gap-2 mb-2">
-              <span class="text-white font-semibold text-lg">NVIDIA CUDA</span>
-              <span class="px-2 py-0.5 rounded-full bg-green-500/10 text-green-400 text-xs font-medium border border-green-500/20">GPU Accelerated</span>
+            <div class="rounded-2xl border border-line bg-card/60 p-4">
+              <div class="font-mono text-lg font-bold text-warn">Alpha</div>
+              <div class="mt-1 text-xs text-zinc-500">Narrow and honest</div>
             </div>
-            <p class="text-zinc-400 text-sm leading-relaxed">CUDA-accelerated inference pipelines for local model execution, embedding generation, and real-time vector similarity search at enterprise scale.</p>
-          </div>
-          <div class="mt-auto pt-4 border-t border-border flex flex-wrap gap-2">
-            <span class="px-2.5 py-1 rounded-md bg-zinc-800 text-zinc-300 text-xs font-mono">CUDA 12.x</span>
-            <span class="px-2.5 py-1 rounded-md bg-zinc-800 text-zinc-300 text-xs font-mono">TensorRT</span>
-            <span class="px-2.5 py-1 rounded-md bg-zinc-800 text-zinc-300 text-xs font-mono">cuDNN</span>
-          </div>
-        </div>
-
-        <!-- ChromaDB -->
-        <div class="card-glow rounded-2xl border border-border bg-card p-8 flex flex-col gap-5">
-          <div class="w-12 h-12 rounded-xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center">
-            <svg class="w-6 h-6 text-violet-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <ellipse cx="12" cy="5" rx="9" ry="3"/>
-              <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/>
-              <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>
-            </svg>
-          </div>
-          <div>
-            <div class="flex items-center gap-2 mb-2">
-              <span class="text-white font-semibold text-lg">ChromaDB</span>
-              <span class="px-2 py-0.5 rounded-full bg-violet-500/10 text-violet-400 text-xs font-medium border border-violet-500/20">Vector Store</span>
+            <div class="rounded-2xl border border-line bg-card/60 p-4">
+              <div class="font-mono text-lg font-bold text-white">CI</div>
+              <div class="mt-1 text-xs text-zinc-500">Tests + audit path</div>
             </div>
-            <p class="text-zinc-400 text-sm leading-relaxed">Persistent vector memory with Deep RAG re-ranking. Semantic search across millions of embeddings with sub-millisecond retrieval and full metadata filtering.</p>
-          </div>
-          <div class="mt-auto pt-4 border-t border-border flex flex-wrap gap-2">
-            <span class="px-2.5 py-1 rounded-md bg-zinc-800 text-zinc-300 text-xs font-mono">Deep RAG</span>
-            <span class="px-2.5 py-1 rounded-md bg-zinc-800 text-zinc-300 text-xs font-mono">Re-ranking</span>
-            <span class="px-2.5 py-1 rounded-md bg-zinc-800 text-zinc-300 text-xs font-mono">HNSW Index</span>
           </div>
         </div>
 
-      </div>
-    </div>
-  </section>
-
-  <!-- FEATURES -->
-  <section id="features" class="py-28 border-t border-border">
-    <div class="max-w-7xl mx-auto px-6">
-      <div class="text-center mb-16">
-        <p class="text-brand text-sm font-semibold uppercase tracking-widest mb-3">Capabilities</p>
-        <h2 class="text-4xl md:text-5xl font-bold text-white">Intelligence at Every Layer</h2>
-        <p class="text-zinc-400 mt-4 text-lg max-w-2xl mx-auto">From persistent memory to cinematic video generation — USBAGENT handles the full AI stack.</p>
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-
-        <!-- Deep RAG Memory -->
-        <div class="card-glow rounded-2xl border border-border bg-card p-7 flex flex-col gap-4">
-          <div class="w-11 h-11 rounded-xl bg-brand/10 border border-brand/20 flex items-center justify-center">
-            <svg class="w-5 h-5 text-brandlight" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18" />
-            </svg>
-          </div>
-          <div>
-            <h3 class="text-white font-semibold text-lg mb-2">Deep RAG Memory</h3>
-            <p class="text-zinc-400 text-sm leading-relaxed">Persistent semantic memory with multi-stage retrieval and neural re-ranking. The agent remembers context across sessions, projects, and users — with full auditability.</p>
-          </div>
-          <ul class="mt-2 space-y-1.5">
-            <li class="flex items-center gap-2 text-xs text-zinc-400"><span class="w-1 h-1 rounded-full bg-brand"></span>Cross-session context persistence</li>
-            <li class="flex items-center gap-2 text-xs text-zinc-400"><span class="w-1 h-1 rounded-full bg-brand"></span>Neural re-ranking pipeline</li>
-            <li class="flex items-center gap-2 text-xs text-zinc-400"><span class="w-1 h-1 rounded-full bg-brand"></span>Metadata-filtered retrieval</li>
-          </ul>
-        </div>
-
-        <!-- Strategic CoT -->
-        <div class="card-glow rounded-2xl border border-border bg-card p-7 flex flex-col gap-4">
-          <div class="w-11 h-11 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
-            <svg class="w-5 h-5 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-            </svg>
-          </div>
-          <div>
-            <h3 class="text-white font-semibold text-lg mb-2">Strategic Chain-of-Thought</h3>
-            <p class="text-zinc-400 text-sm leading-relaxed">God Mode reasoning engine. Before every response, USBAGENT performs hidden strategic analysis — intent classification, opportunity mapping, and tool selection — for maximally aligned outputs.</p>
-          </div>
-          <ul class="mt-2 space-y-1.5">
-            <li class="flex items-center gap-2 text-xs text-zinc-400"><span class="w-1 h-1 rounded-full bg-blue-400"></span>Intent &amp; opportunity analysis</li>
-            <li class="flex items-center gap-2 text-xs text-zinc-400"><span class="w-1 h-1 rounded-full bg-blue-400"></span>Multi-step reasoning traces</li>
-            <li class="flex items-center gap-2 text-xs text-zinc-400"><span class="w-1 h-1 rounded-full bg-blue-400"></span>Autonomous tool orchestration</li>
-          </ul>
-        </div>
-
-        <!-- Vision & Video Generation -->
-        <div class="card-glow rounded-2xl border border-border bg-card p-7 flex flex-col gap-4">
-          <div class="w-11 h-11 rounded-xl bg-pink-500/10 border border-pink-500/20 flex items-center justify-center">
-            <svg class="w-5 h-5 text-pink-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M15 10l4.553-2.069A1 1 0 0121 8.82v6.36a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-            </svg>
-          </div>
-          <div>
-            <h3 class="text-white font-semibold text-lg mb-2">Vision &amp; Video Generation</h3>
-            <p class="text-zinc-400 text-sm leading-relaxed">Cinematic video synthesis via VEO 2.0 with Start/End Frame Control. Generate, analyze, and transform visual content at production quality — directly from natural language prompts.</p>
-          </div>
-          <ul class="mt-2 space-y-1.5">
-            <li class="flex items-center gap-2 text-xs text-zinc-400"><span class="w-1 h-1 rounded-full bg-pink-400"></span>VEO 2.0 cinematic video</li>
-            <li class="flex items-center gap-2 text-xs text-zinc-400"><span class="w-1 h-1 rounded-full bg-pink-400"></span>Start/End frame control</li>
-            <li class="flex items-center gap-2 text-xs text-zinc-400"><span class="w-1 h-1 rounded-full bg-pink-400"></span>Multimodal vision analysis</li>
-          </ul>
-        </div>
-
-        <!-- Trend Intelligence -->
-        <div class="card-glow rounded-2xl border border-border bg-card p-7 flex flex-col gap-4">
-          <div class="w-11 h-11 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center">
-            <svg class="w-5 h-5 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-            </svg>
-          </div>
-          <div>
-            <h3 class="text-white font-semibold text-lg mb-2">Autonomous Trend Hunter</h3>
-            <p class="text-zinc-400 text-sm leading-relaxed">Background intelligence worker that continuously scans market signals, emerging technologies, and competitive landscapes — surfacing actionable insights every 12 hours.</p>
-          </div>
-          <ul class="mt-2 space-y-1.5">
-            <li class="flex items-center gap-2 text-xs text-zinc-400"><span class="w-1 h-1 rounded-full bg-amber-400"></span>12-hour autonomous scan cycles</li>
-            <li class="flex items-center gap-2 text-xs text-zinc-400"><span class="w-1 h-1 rounded-full bg-amber-400"></span>Signal aggregation &amp; scoring</li>
-            <li class="flex items-center gap-2 text-xs text-zinc-400"><span class="w-1 h-1 rounded-full bg-amber-400"></span>Competitive intelligence reports</li>
-          </ul>
-        </div>
-
-        <!-- OSINT Module -->
-        <div class="card-glow rounded-2xl border border-border bg-card p-7 flex flex-col gap-4">
-          <div class="w-11 h-11 rounded-xl bg-teal-500/10 border border-teal-500/20 flex items-center justify-center">
-            <svg class="w-5 h-5 text-teal-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-          </div>
-          <div>
-            <h3 class="text-white font-semibold text-lg mb-2">OSINT Intelligence Module</h3>
-            <p class="text-zinc-400 text-sm leading-relaxed">Open-source intelligence gathering with social footprint analysis, crypto trace capabilities, and cross-platform identity resolution for enterprise due diligence workflows.</p>
-          </div>
-          <ul class="mt-2 space-y-1.5">
-            <li class="flex items-center gap-2 text-xs text-zinc-400"><span class="w-1 h-1 rounded-full bg-teal-400"></span>Social footprint mapping</li>
-            <li class="flex items-center gap-2 text-xs text-zinc-400"><span class="w-1 h-1 rounded-full bg-teal-400"></span>Crypto trace analysis</li>
-            <li class="flex items-center gap-2 text-xs text-zinc-400"><span class="w-1 h-1 rounded-full bg-teal-400"></span>Cross-platform identity graph</li>
-          </ul>
-        </div>
-
-        <!-- Enterprise API -->
-        <div class="card-glow rounded-2xl border border-border bg-card p-7 flex flex-col gap-4">
-          <div class="w-11 h-11 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
-            <svg class="w-5 h-5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
-          </div>
-          <div>
-            <h3 class="text-white font-semibold text-lg mb-2">OpenAI-Compatible API</h3>
-            <p class="text-zinc-400 text-sm leading-relaxed">Drop-in replacement for OpenAI's API. Migrate existing integrations in minutes with full streaming support, function calling, and vision capabilities — no code changes required.</p>
-          </div>
-          <ul class="mt-2 space-y-1.5">
-            <li class="flex items-center gap-2 text-xs text-zinc-400"><span class="w-1 h-1 rounded-full bg-indigo-400"></span>OpenAI API compatibility</li>
-            <li class="flex items-center gap-2 text-xs text-zinc-400"><span class="w-1 h-1 rounded-full bg-indigo-400"></span>Streaming &amp; function calling</li>
-            <li class="flex items-center gap-2 text-xs text-zinc-400"><span class="w-1 h-1 rounded-full bg-indigo-400"></span>MCP protocol support</li>
-          </ul>
-        </div>
-
-      </div>
-    </div>
-  </section>
-
-  <!-- ══════════════════════════════════════════════
-       SYSTEM BLUEPRINTS
-  ══════════════════════════════════════════════ -->
-  <section id="blueprints" class="py-28 border-t border-border blueprints-glow relative overflow-hidden">
-
-    <!-- subtle grid overlay -->
-    <div class="absolute inset-0 grid-bg opacity-60 pointer-events-none"></div>
-    <!-- corner accent glows -->
-    <div class="absolute -top-32 -left-32 w-96 h-96 bg-brand/10 rounded-full blur-3xl pointer-events-none"></div>
-    <div class="absolute -bottom-32 -right-32 w-96 h-96 bg-blue-500/8 rounded-full blur-3xl pointer-events-none"></div>
-
-    <div class="relative z-10 max-w-7xl mx-auto px-6">
-
-      <!-- Header -->
-      <div class="text-center mb-16">
-        <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-brand/40 bg-brand/10 text-brandlight text-xs font-mono font-semibold mb-5 badge-glow tracking-widest uppercase">
-          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-          </svg>
-          v4.9.2 — Classified Architecture
-        </div>
-        <h2 class="text-4xl md:text-5xl font-bold text-white mb-4">System Blueprints</h2>
-        <p class="text-zinc-400 text-lg max-w-2xl mx-auto leading-relaxed">
-          Internal architecture diagrams extracted from the engineering pitch deck. Explore the core subsystems powering USBAGENT at scale.
-        </p>
-      </div>
-
-      <!-- Blueprint Grid -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-7">
-
-        <!-- Card 1 — System Architecture -->
-        <div class="blueprint-card flex flex-col">
-          <div class="blueprint-scan-line"></div>
-
-          <!-- top meta bar -->
-          <div class="flex items-center justify-between px-5 py-3.5 border-b border-white/5">
-            <div class="flex items-center gap-2">
-              <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
-              <span class="text-xs font-mono text-zinc-500 tracking-widest uppercase">ARCH-01</span>
+        <div id="demo" class="rail-card rounded-3xl border border-rail/25 p-5 shadow-rail sm:p-7">
+          <div class="mb-5 flex items-center justify-between border-b border-line pb-4">
+            <div class="flex gap-2">
+              <span class="h-3 w-3 rounded-full bg-danger/70"></span>
+              <span class="h-3 w-3 rounded-full bg-warn/80"></span>
+              <span class="h-3 w-3 rounded-full bg-mint/80"></span>
             </div>
-            <span class="blueprint-tag">
-              <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
-              System Architecture
-            </span>
+            <span class="font-mono text-xs text-zinc-500">synrail check</span>
           </div>
-
-          <!-- image -->
-          <div class="blueprint-img-wrap">
-            <img src="arch.png" alt="System Architecture Diagram" loading="lazy" />
-          </div>
-
-          <!-- footer -->
-          <div class="p-5 flex flex-col gap-4 mt-auto">
+          <div class="space-y-4 font-mono text-sm leading-6 sm:text-base">
             <div>
-              <h3 class="text-white font-semibold text-base mb-1">Core Orchestration Layer</h3>
-              <p class="text-zinc-500 text-xs leading-relaxed">Full-stack architecture overview: model routing, tool dispatch, memory bus, and API gateway topology.</p>
+              <p class="text-zinc-500">Agent:</p>
+              <p class="text-white">done, tests passed</p>
             </div>
-            <button class="view-details-btn" onclick="showBlueprintModal('arch')">
-              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-              </svg>
-              View Technical Details
-            </button>
-          </div>
-        </div>
-
-        <!-- Card 2 — Chain-of-Thought Engine -->
-        <div class="blueprint-card flex flex-col">
-          <div class="blueprint-scan-line"></div>
-
-          <div class="flex items-center justify-between px-5 py-3.5 border-b border-white/5">
-            <div class="flex items-center gap-2">
-              <span class="w-2 h-2 rounded-full bg-blue-400 animate-pulse"></span>
-              <span class="text-xs font-mono text-zinc-500 tracking-widest uppercase">COT-02</span>
+            <div class="rounded-2xl border border-line bg-ink/70 p-4">
+              <span class="terminal-line text-zinc-300">python3 alpha.py check</span>
+              <p class="mt-3 font-bold text-danger">Synrail: Status: Proof Invalid</p>
+              <p class="text-warn">Reason: verification command not executed</p>
+              <p class="text-zinc-300">Next: repair final_result.json</p>
             </div>
-            <span class="blueprint-tag" style="border-color:rgba(96,165,250,0.3);background:rgba(96,165,250,0.08);color:#93C5FD;">
-              <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
-              Reasoning Engine
-            </span>
-          </div>
-
-          <div class="blueprint-img-wrap">
-            <img src="cot.png" alt="Chain-of-Thought Reasoning Diagram" loading="lazy" />
-          </div>
-
-          <div class="p-5 flex flex-col gap-4 mt-auto">
-            <div>
-              <h3 class="text-white font-semibold text-base mb-1">Chain-of-Thought Pipeline</h3>
-              <p class="text-zinc-500 text-xs leading-relaxed">Step-by-step reasoning trace: intent classification → opportunity mapping → tool selection → response synthesis.</p>
-            </div>
-            <button class="view-details-btn" style="border-color:rgba(96,165,250,0.35);background:rgba(96,165,250,0.08);color:#93C5FD;" onmouseover="this.style.background='rgba(96,165,250,0.22)';this.style.borderColor='rgba(96,165,250,0.7)';this.style.color='#fff';" onmouseout="this.style.background='rgba(96,165,250,0.08)';this.style.borderColor='rgba(96,165,250,0.35)';this.style.color='#93C5FD';" onclick="showBlueprintModal('cot')">
-              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-              </svg>
-              View Technical Details
-            </button>
-          </div>
-        </div>
-
-        <!-- Card 3 — RAG Memory System -->
-        <div class="blueprint-card flex flex-col">
-          <div class="blueprint-scan-line"></div>
-
-          <div class="flex items-center justify-between px-5 py-3.5 border-b border-white/5">
-            <div class="flex items-center gap-2">
-              <span class="w-2 h-2 rounded-full bg-violet-400 animate-pulse"></span>
-              <span class="text-xs font-mono text-zinc-500 tracking-widest uppercase">RAG-03</span>
-            </div>
-            <span class="blueprint-tag" style="border-color:rgba(167,139,250,0.3);background:rgba(167,139,250,0.08);color:#C4B5FD;">
-              <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
-              Memory System
-            </span>
-          </div>
-
-          <div class="blueprint-img-wrap">
-            <img src="rag.png" alt="RAG Memory System Diagram" loading="lazy" />
-          </div>
-
-          <div class="p-5 flex flex-col gap-4 mt-auto">
-            <div>
-              <h3 class="text-white font-semibold text-base mb-1">Deep RAG Memory Graph</h3>
-              <p class="text-zinc-500 text-xs leading-relaxed">Vector store topology, embedding pipeline, HNSW index structure, and neural re-ranking flow for persistent semantic memory.</p>
-            </div>
-            <button class="view-details-btn" style="border-color:rgba(167,139,250,0.35);background:rgba(167,139,250,0.08);color:#C4B5FD;" onmouseover="this.style.background='rgba(167,139,250,0.22)';this.style.borderColor='rgba(167,139,250,0.7)';this.style.color='#fff';" onmouseout="this.style.background='rgba(167,139,250,0.08)';this.style.borderColor='rgba(167,139,250,0.35)';this.style.color='#C4B5FD';" onclick="showBlueprintModal('rag')">
-              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-              </svg>
-              View Technical Details
-            </button>
-          </div>
-        </div>
-
-      </div>
-
-      <!-- Bottom CTA row -->
-      <div class="mt-12 flex flex-col sm:flex-row items-center justify-center gap-4">
-        <a href="NexusShell-Core_compressed.pdf" download class="inline-flex items-center gap-2.5 px-6 py-3.5 rounded-xl bg-brand hover:bg-violet-500 text-white font-semibold text-sm transition-all hover:scale-105 hover:shadow-lg hover:shadow-brand/30">
-          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-          </svg>
-          Download Full Technical PDF
-        </a>
-        <a href="#contact" class="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl border border-border hover:border-zinc-500 text-zinc-300 hover:text-white font-semibold text-sm transition-all">
-          Request Architecture Briefing
-          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
-          </svg>
-        </a>
-      </div>
-
-    </div>
-  </section>
-
-  <!-- Blueprint Lightbox Modal -->
-  <div id="blueprint-modal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 hidden" onclick="closeBlueprintModal(event)">
-    <div class="absolute inset-0 bg-black/80 backdrop-blur-md"></div>
-    <div class="relative z-10 max-w-5xl w-full rounded-2xl border border-brand/30 bg-zinc-900/95 backdrop-blur-xl overflow-hidden shadow-2xl shadow-brand/20">
-      <!-- modal header -->
-      <div class="flex items-center justify-between px-6 py-4 border-b border-white/5">
-        <div class="flex items-center gap-3">
-          <div class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></div>
-          <span id="modal-label" class="text-xs font-mono text-zinc-400 tracking-widest uppercase">ARCH-01 — System Architecture</span>
-        </div>
-        <button onclick="closeBlueprintModal(null, true)" class="w-8 h-8 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors text-zinc-400 hover:text-white">
-          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
-      </div>
-      <!-- modal image -->
-      <div class="p-4 md:p-6">
-        <img id="modal-img" src="" alt="" class="w-full rounded-xl border border-white/5" />
-      </div>
-      <!-- modal footer -->
-      <div class="px-6 pb-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-        <p id="modal-desc" class="text-zinc-400 text-sm leading-relaxed max-w-xl"></p>
-        <a href="NexusShell-Core_compressed.pdf" download class="shrink-0 inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-brand hover:bg-violet-500 text-white text-sm font-semibold transition-all">
-          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-          </svg>
-          Full PDF
-        </a>
-      </div>
-    </div>
-  </div>
-
-  <!-- SOCIAL PROOF / TRUST BAR -->
-  <section class="py-16 border-t border-border bg-card/40">
-    <div class="max-w-7xl mx-auto px-6 text-center">
-      <p class="text-zinc-500 text-sm uppercase tracking-widest font-medium mb-10">Powered by &amp; Integrated with</p>
-      <div class="flex flex-wrap items-center justify-center gap-10 md:gap-16">
-        <div class="flex items-center gap-2 text-zinc-400 hover:text-white transition-colors">
-          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/></svg>
-          <span class="font-semibold text-sm">Google Cloud</span>
-        </div>
-        <div class="flex items-center gap-2 text-zinc-400 hover:text-white transition-colors">
-          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M4 6a2 2 0 012-2h12a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V6z"/></svg>
-          <span class="font-semibold text-sm">NVIDIA Inception</span>
-        </div>
-        <div class="flex items-center gap-2 text-zinc-400 hover:text-white transition-colors">
-          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-          <span class="font-semibold text-sm">Vertex AI</span>
-        </div>
-        <div class="flex items-center gap-2 text-zinc-400 hover:text-white transition-colors">
-          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-          <span class="font-semibold text-sm">ChromaDB</span>
-        </div>
-        <div class="flex items-center gap-2 text-zinc-400 hover:text-white transition-colors">
-          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18"/></svg>
-          <span class="font-semibold text-sm">AWS Activate</span>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- CONTACT / REQUEST ACCESS -->
-  <section id="contact" class="py-28 border-t border-border">
-    <div class="max-w-2xl mx-auto px-6">
-      <div class="text-center mb-12">
-        <p class="text-brand text-sm font-semibold uppercase tracking-widest mb-3">Early Access</p>
-        <h2 class="text-4xl md:text-5xl font-bold text-white">Request Access</h2>
-        <p class="text-zinc-400 mt-4 text-lg">Join our private beta. We're onboarding select enterprise teams and research partners.</p>
-      </div>
-
-      <div class="rounded-2xl border border-border bg-card p-8 md:p-10">
-        <form class="space-y-5" onsubmit="handleSubmit(event)">
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            <div>
-              <label class="block text-sm font-medium text-zinc-300 mb-2">First Name</label>
-              <input type="text" placeholder="Alex" class="w-full px-4 py-3 rounded-xl text-sm" />
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-zinc-300 mb-2">Last Name</label>
-              <input type="text" placeholder="Johnson" class="w-full px-4 py-3 rounded-xl text-sm" />
+            <div class="rounded-2xl border border-mint/20 bg-mint/5 p-4">
+              <p class="text-zinc-400">After real verification:</p>
+              <p class="mt-2 font-bold text-mint">Synrail: Status: Accepted</p>
             </div>
           </div>
+          <p class="mt-5 text-sm leading-6 text-zinc-500">Only <code class="rounded bg-mint/10 px-1.5 py-0.5 font-mono text-mint">Status: Accepted</code> means the task may be reported as complete.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="why" class="border-y border-line/80 bg-surface/70 py-20">
+      <div class="mx-auto grid max-w-7xl gap-8 px-5 sm:px-6 lg:grid-cols-3">
+        <div class="lg:col-span-1">
+          <p class="font-mono text-xs font-bold uppercase tracking-[0.2em] text-rail">The skeptical question</p>
+          <h2 class="mt-3 text-3xl font-bold tracking-tight text-white sm:text-4xl">Is this just post-review?</h2>
+        </div>
+        <div class="space-y-6 text-lg leading-8 text-zinc-400 lg:col-span-2">
+          <p>Not exactly. A normal post-review asks: <span class="text-white">is this code good?</span> Synrail asks a narrower question first: <span class="text-white">is the agent allowed to claim this task is done?</span></p>
+          <p>If you personally read every diff, run every check, and track every agent step, Synrail may be unnecessary overhead. In that case, you are already acting as Synrail manually.</p>
+          <p class="rounded-3xl border border-rail/25 bg-rail/10 p-6 text-railsoft">Synrail becomes useful when you stop being the runtime supervisor: repeated agent runs, long context, failed repairs, second-operator handoff, or proof-sensitive changes.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="use" class="py-20">
+      <div class="mx-auto max-w-7xl px-5 sm:px-6">
+        <div class="mb-12 max-w-3xl">
+          <p class="font-mono text-xs font-bold uppercase tracking-[0.2em] text-rail">Where it fits</p>
+          <h2 class="mt-3 text-3xl font-bold tracking-tight text-white sm:text-4xl">Use Synrail when verification debt compounds.</h2>
+        </div>
+        <div class="grid gap-5 md:grid-cols-3">
+          <div class="rounded-3xl border border-line bg-card/75 p-6">
+            <h3 class="text-xl font-bold text-white">Batch agent work</h3>
+            <p class="mt-3 leading-7 text-zinc-400">You ask an agent to update many files or run repeated small tasks, and manual proof tracking starts getting expensive.</p>
+          </div>
+          <div class="rounded-3xl border border-line bg-card/75 p-6">
+            <h3 class="text-xl font-bold text-white">Failed repair loops</h3>
+            <p class="mt-3 leading-7 text-zinc-400">The agent says it fixed the issue, another agent says it is still broken, and you need a bounded next step instead of chat archaeology.</p>
+          </div>
+          <div class="rounded-3xl border border-line bg-card/75 p-6">
+            <h3 class="text-xl font-bold text-white">Handoff-safe proof</h3>
+            <p class="mt-3 leading-7 text-zinc-400">A second operator or agent needs to understand what was accepted, what was blocked, why, and what is allowed next.</p>
+          </div>
+        </div>
+        <div class="mt-6 rounded-3xl border border-warn/25 bg-warn/10 p-6">
+          <h3 class="font-bold text-warn">You may not need Synrail if...</h3>
+          <p class="mt-2 leading-7 text-zinc-400">The task is tiny, you inspect every changed line, you run verification yourself, and a false-green costs less than running the gate. Synrail is intentionally not a universal correctness machine.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="border-y border-line/80 bg-surface/70 py-20">
+      <div class="mx-auto max-w-7xl px-5 sm:px-6">
+        <div class="mb-12 grid gap-8 lg:grid-cols-[.85fr_1.15fr] lg:items-end">
           <div>
-            <label class="block text-sm font-medium text-zinc-300 mb-2">Work Email</label>
-            <input type="email" placeholder="alex@company.com" class="w-full px-4 py-3 rounded-xl text-sm" />
+            <p class="font-mono text-xs font-bold uppercase tracking-[0.2em] text-rail">What Synrail checks</p>
+            <h2 class="mt-3 text-3xl font-bold tracking-tight text-white sm:text-4xl">claimed_done != accepted_done</h2>
           </div>
-          <div>
-            <label class="block text-sm font-medium text-zinc-300 mb-2">Company / Organization</label>
-            <input type="text" placeholder="Acme Corp" class="w-full px-4 py-3 rounded-xl text-sm" />
+          <p class="leading-8 text-zinc-400">Synrail keeps acceptance separate from execution. The agent can produce code, but the proof gate decides whether the work may be accepted.</p>
+        </div>
+        <div class="overflow-hidden rounded-3xl border border-line bg-card/80">
+          <div class="grid border-b border-line bg-ink/50 px-5 py-3 font-mono text-xs uppercase tracking-[0.16em] text-zinc-500 md:grid-cols-4">
+            <div>Scenario</div><div>Agent rules</div><div>CI alone</div><div>Synrail</div>
           </div>
-          <div>
-            <label class="block text-sm font-medium text-zinc-300 mb-2">Use Case</label>
-            <select class="w-full px-4 py-3 rounded-xl text-sm bg-card border border-border text-zinc-300 focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/20">
-              <option value="" class="bg-zinc-900">Select your primary use case</option>
-              <option value="enterprise" class="bg-zinc-900">Enterprise AI Automation</option>
-              <option value="research" class="bg-zinc-900">AI Research &amp; Development</option>
-              <option value="video" class="bg-zinc-900">Cinematic Video Generation</option>
-              <option value="osint" class="bg-zinc-900">Intelligence &amp; OSINT</option>
-              <option value="rag" class="bg-zinc-900">RAG &amp; Knowledge Management</option>
-              <option value="other" class="bg-zinc-900">Other</option>
-            </select>
+          <div class="divide-y divide-line text-sm md:text-base">
+            <div class="grid gap-3 px-5 py-5 md:grid-cols-4"><div class="font-semibold text-white">Tests claimed but not run</div><div class="text-zinc-500">Usually missed</div><div class="text-zinc-500">Maybe later</div><div class="text-mint">Blocks before accept</div></div>
+            <div class="grid gap-3 px-5 py-5 md:grid-cols-4"><div class="font-semibold text-white">Proof does not match changed files</div><div class="text-zinc-500">Weak</div><div class="text-zinc-500">Partial signal</div><div class="text-mint">Requires matched proof</div></div>
+            <div class="grid gap-3 px-5 py-5 md:grid-cols-4"><div class="font-semibold text-white">Repair handoff is unclear</div><div class="text-zinc-500">Chat context</div><div class="text-zinc-500">No answer</div><div class="text-mint">Names one bounded step</div></div>
           </div>
-          <div>
-            <label class="block text-sm font-medium text-zinc-300 mb-2">Tell us about your project <span class="text-zinc-500 font-normal">(optional)</span></label>
-            <textarea rows="4" placeholder="Describe your use case, scale requirements, or any specific capabilities you need..." class="w-full px-4 py-3 rounded-xl text-sm resize-none"></textarea>
-          </div>
-          <button type="submit" id="submit-btn" class="w-full py-4 rounded-xl bg-brand hover:bg-violet-500 text-white font-semibold text-base transition-all hover:scale-[1.02] hover:shadow-lg hover:shadow-brand/30 flex items-center justify-center gap-2">
-            <span id="btn-text">Submit Access Request</span>
-            <svg id="btn-icon" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
-            </svg>
-          </button>
-          <p class="text-center text-xs text-zinc-500">We respect your privacy. No spam, ever. Typical response within 48 hours.</p>
-        </form>
-        <div id="success-msg" class="hidden text-center py-8">
-          <div class="w-14 h-14 rounded-full bg-green-500/10 border border-green-500/20 flex items-center justify-center mx-auto mb-4">
-            <svg class="w-7 h-7 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-            </svg>
-          </div>
-          <h3 class="text-white font-semibold text-xl mb-2">Request Received!</h3>
-          <p class="text-zinc-400 text-sm">Thank you for your interest in USBAGENT. Our team will be in touch within 48 hours.</p>
         </div>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <!-- FOOTER -->
-  <footer class="border-t border-border py-12">
-    <div class="max-w-7xl mx-auto px-6">
-      <div class="flex flex-col md:flex-row items-center justify-between gap-6">
-        <div class="flex items-center gap-2">
-          <div class="w-7 h-7 rounded-md bg-zinc-800 flex items-center justify-center border border-zinc-700">
-            <svg class="w-4 h-4 text-brand" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
-            </svg>
-          </div>
-          <span class="font-bold text-white uppercase tracking-tight">NexusShell<span class="text-brandlight">AI</span></span>
-          <span class="text-zinc-600 text-sm ml-2">v4.9.2 Stable</span>
+    <section id="run" class="py-20">
+      <div class="mx-auto grid max-w-7xl gap-8 px-5 sm:px-6 lg:grid-cols-[.9fr_1.1fr] lg:items-start">
+        <div>
+          <p class="font-mono text-xs font-bold uppercase tracking-[0.2em] text-rail">Run locally</p>
+          <h2 class="mt-3 text-3xl font-bold tracking-tight text-white sm:text-4xl">Try the false-green demo in about two minutes.</h2>
+          <p class="mt-5 leading-8 text-zinc-400">The public alpha is a local CLI. It is designed to wrap existing coding-agent workflows, not replace your editor, CI, or code review.</p>
         </div>
-        <div class="flex flex-wrap items-center justify-center gap-5 text-sm text-zinc-500">
-          <a href="#" class="hover:text-white transition-colors">Privacy Policy</a>
-          <a href="#" class="hover:text-white transition-colors">Terms of Service</a>
-          <a href="#contact" class="hover:text-white transition-colors">Contact</a>
-          <!-- PDF Download Button in footer -->
-          <a href="NexusShell-Core_compressed.pdf" download class="pdf-btn">
-            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-            Download Full Technical PDF
+        <div class="rounded-3xl border border-line bg-card/85 p-5 font-mono text-sm leading-7 shadow-rail">
+          <span class="terminal-line text-zinc-300">git clone https://github.com/USBVadik/synrail</span>
+          <span class="terminal-line text-zinc-300">cd synrail</span>
+          <span class="terminal-line text-zinc-300">make install-dev</span>
+          <span class="terminal-line text-zinc-300">make demo</span>
+          <div class="mt-5 rounded-2xl border border-line bg-ink/70 p-4 text-zinc-500">
+            <p>Fallback without make:</p>
+            <p class="mt-2 text-zinc-300">python3 -m pip install -e ".[dev]" -c constraints-dev.txt</p>
+            <p class="text-zinc-300">./examples/false-green-demo/run_demo.sh</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="transparency" class="border-y border-line/80 bg-surface/70 py-20">
+      <div class="mx-auto max-w-7xl px-5 sm:px-6">
+        <div class="max-w-3xl">
+          <p class="font-mono text-xs font-bold uppercase tracking-[0.2em] text-rail">Operational transparency</p>
+          <h2 class="mt-3 text-3xl font-bold tracking-tight text-white sm:text-4xl">Built in public by NexusShellAI.</h2>
+          <p class="mt-5 leading-8 text-zinc-400">Synrail is the current public product of NexusShellAI: a focused developer tool for AI-agent reliability, proof, bounded repair, and handoff.</p>
+        </div>
+        <div class="mt-10 grid gap-5 md:grid-cols-3">
+          <a href="https://github.com/USBVadik" target="_blank" rel="noopener" class="rounded-3xl border border-line bg-card/75 p-6 transition hover:border-rail/50">
+            <div class="font-mono text-xs uppercase tracking-[0.18em] text-zinc-500">Founder / maintainer</div>
+            <div class="mt-3 text-xl font-bold text-white">Vadik / USBVadik</div>
+            <p class="mt-3 text-sm leading-6 text-zinc-500">Public GitHub profile and project owner.</p>
+          </a>
+          <a href="https://github.com/USBVadik/synrail" target="_blank" rel="noopener" class="rounded-3xl border border-line bg-card/75 p-6 transition hover:border-rail/50">
+            <div class="font-mono text-xs uppercase tracking-[0.18em] text-zinc-500">Live product</div>
+            <div class="mt-3 text-xl font-bold text-white">Synrail repository</div>
+            <p class="mt-3 text-sm leading-6 text-zinc-500">Source, issues, demo, CI, and alpha tester protocol.</p>
+          </a>
+          <a href="https://x.com/a_seven_life" target="_blank" rel="noopener" class="rounded-3xl border border-line bg-card/75 p-6 transition hover:border-rail/50">
+            <div class="font-mono text-xs uppercase tracking-[0.18em] text-zinc-500">Public updates</div>
+            <div class="mt-3 text-xl font-bold text-white">@a_seven_life</div>
+            <p class="mt-3 text-sm leading-6 text-zinc-500">Build-in-public notes and false-green research threads.</p>
           </a>
         </div>
-        <p class="text-zinc-600 text-sm">© 2026 NexusshellAI. All rights reserved.</p>
+      </div>
+    </section>
+
+    <section id="contact" class="py-20">
+      <div class="mx-auto max-w-4xl px-5 text-center sm:px-6">
+        <p class="font-mono text-xs font-bold uppercase tracking-[0.2em] text-rail">Alpha feedback</p>
+        <h2 class="mt-3 text-3xl font-bold tracking-tight text-white sm:text-5xl">Use Synrail on one real agent task and tell us where it hurts.</h2>
+        <p class="mx-auto mt-5 max-w-2xl leading-8 text-zinc-400">The next milestone is not more abstraction. It is 3-5 real external testers using Synrail around Claude Code, Cursor, Codex, Gemini CLI, Aider, or custom agent loops.</p>
+        <div class="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
+          <a href="https://github.com/USBVadik/synrail/issues" target="_blank" rel="noopener" class="inline-flex items-center justify-center rounded-xl bg-rail px-6 py-3.5 font-bold text-ink transition hover:bg-railsoft">Open alpha feedback</a>
+          <a href="/synrail" class="inline-flex items-center justify-center rounded-xl border border-line bg-card/70 px-6 py-3.5 font-semibold text-zinc-200 transition hover:border-rail/60 hover:text-white">Read product page</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="border-t border-line bg-ink py-10">
+    <div class="mx-auto flex max-w-7xl flex-col gap-6 px-5 text-sm text-zinc-500 sm:px-6 md:flex-row md:items-center md:justify-between">
+      <div>
+        <div class="font-bold uppercase tracking-[0.18em] text-zinc-300">NexusShellAI / Synrail</div>
+        <div class="mt-1">Public alpha developer tool for AI-agent reliability.</div>
+      </div>
+      <div class="flex flex-wrap gap-5">
+        <a href="https://github.com/USBVadik/synrail" target="_blank" rel="noopener" class="hover:text-white">GitHub</a>
+        <a href="https://github.com/USBVadik/synrail/issues" target="_blank" rel="noopener" class="hover:text-white">Issues</a>
+        <a href="/synrail" class="hover:text-white">Synrail page</a>
+        <a href="https://x.com/a_seven_life" target="_blank" rel="noopener" class="hover:text-white">X / Twitter</a>
       </div>
     </div>
   </footer>
-
-  <script>
-    /* ── Form submit ── */
-    function handleSubmit(e) {
-      e.preventDefault();
-      const btn = document.getElementById('submit-btn');
-      const btnText = document.getElementById('btn-text');
-      btnText.textContent = 'Submitting...';
-      btn.disabled = true;
-      btn.classList.add('opacity-70', 'cursor-not-allowed');
-      setTimeout(() => {
-        document.querySelector('form').classList.add('hidden');
-        document.getElementById('success-msg').classList.remove('hidden');
-      }, 1200);
-    }
-
-    /* ── Blueprint modal ── */
-    const blueprintData = {
-      arch: {
-        label: 'ARCH-01 — Core Orchestration Layer',
-        src: 'arch.png',
-        alt: 'System Architecture Diagram',
-        desc: 'Full-stack architecture overview: model routing, tool dispatch, memory bus, and API gateway topology. Shows how all subsystems interconnect within the USBAGENT orchestration engine.',
-      },
-      cot: {
-        label: 'COT-02 — Chain-of-Thought Pipeline',
-        src: 'cot.png',
-        alt: 'Chain-of-Thought Reasoning Diagram',
-        desc: 'Step-by-step reasoning trace: intent classification → opportunity mapping → tool selection → response synthesis. Illustrates the God Mode hidden reasoning layer active on every request.',
-      },
-      rag: {
-        label: 'RAG-03 — Deep RAG Memory Graph',
-        src: 'rag.png',
-        alt: 'RAG Memory System Diagram',
-        desc: 'Vector store topology, embedding pipeline, HNSW index structure, and neural re-ranking flow for persistent semantic memory across sessions, users, and projects.',
-      },
-    };
-
-    function showBlueprintModal(key) {
-      const data = blueprintData[key];
-      if (!data) return;
-      document.getElementById('modal-label').textContent = data.label;
-      document.getElementById('modal-img').src = data.src;
-      document.getElementById('modal-img').alt = data.alt;
-      document.getElementById('modal-desc').textContent = data.desc;
-      const modal = document.getElementById('blueprint-modal');
-      modal.classList.remove('hidden');
-      document.body.style.overflow = 'hidden';
-    }
-
-    function closeBlueprintModal(event, force) {
-      if (force || (event && event.target === document.getElementById('blueprint-modal'))) {
-        document.getElementById('blueprint-modal').classList.add('hidden');
-        document.body.style.overflow = '';
-      }
-    }
-
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') closeBlueprintModal(null, true);
-    });
-
-    /* ── Scroll reveal ── */
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.style.opacity = '1';
-          entry.target.style.transform = 'translateY(0)';
-        }
-      });
-    }, { threshold: 0.1 });
-
-    document.querySelectorAll('section').forEach(section => {
-      section.style.opacity = '0';
-      section.style.transform = 'translateY(20px)';
-      section.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
-      observer.observe(section);
-    });
-  </script>
 </body>
 </html>
