@@ -1,307 +1,43 @@
-<!DOCTYPE html>
-<html lang="en" class="scroll-smooth">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Synrail by NexusShellAI - proof gate for AI coding agents</title>
-  <meta name="description" content="Synrail catches false-green AI-agent work before you accept it. A public alpha proof gate for Claude Code, Cursor, Codex, Gemini CLI, Aider, and custom agent loops." />
-  <meta property="og:title" content="Synrail - catch false-green AI-agent work before you accept it" />
-  <meta property="og:description" content="A local proof gate that separates claimed_done from accepted_done for AI coding agents." />
-  <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://nexusshell.dev/" />
-  <meta property="og:image" content="https://nexusshell.dev/assets/synrail-social.jpg" />
-  <meta property="og:image:width" content="1280" />
-  <meta property="og:image:height" content="640" />
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:image" content="https://nexusshell.dev/assets/synrail-social.jpg" />
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            ink: '#080A0F',
-            surface: '#0E1118',
-            card: '#141925',
-            line: '#273044',
-            rail: '#6FB7F2',
-            railsoft: '#A5D7FF',
-            mint: '#8CF5B8',
-            warn: '#FFD28A',
-            danger: '#FF8AA8'
-          },
-          fontFamily: {
-            sans: ['Inter', 'ui-sans-serif', 'system-ui'],
-            mono: ['JetBrains Mono', 'ui-monospace', 'SFMono-Regular', 'monospace']
-          },
-          boxShadow: {
-            rail: '0 0 0 1px rgba(111,183,242,.28), 0 24px 80px rgba(24,99,186,.16)'
-          }
-        }
-      }
-    };
-  </script>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet" />
-  <style>
-    body { background: #080A0F; }
-    .grid-bg {
-      background-image:
-        radial-gradient(circle at 20% 0%, rgba(111,183,242,.18), transparent 30rem),
-        radial-gradient(circle at 82% 20%, rgba(140,245,184,.08), transparent 26rem),
-        linear-gradient(rgba(111,183,242,.035) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(111,183,242,.035) 1px, transparent 1px);
-      background-size: auto, auto, 42px 42px, 42px 42px;
-    }
-    .noise::before {
-      content: "";
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      opacity: .035;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-      z-index: 60;
-    }
-    .gradient-text {
-      background: linear-gradient(135deg, #A5D7FF 0%, #6FB7F2 45%, #8CF5B8 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-    .terminal-line { display: block; }
-    .terminal-line::before { content: "> "; color: #6FB7F2; }
-    .rail-card { background: linear-gradient(180deg, rgba(20,25,37,.92), rgba(12,15,22,.92)); }
-  </style>
-</head>
-<body class="noise font-sans text-zinc-100 antialiased grid-bg">
-  <nav class="fixed inset-x-0 top-0 z-50 border-b border-line/80 bg-ink/78 backdrop-blur-xl">
-    <div class="mx-auto flex h-16 max-w-7xl items-center justify-between px-5 sm:px-6">
-      <a href="#top" class="flex items-center gap-3" aria-label="Synrail home">
-        <div class="grid h-9 w-9 place-items-center rounded-xl border border-rail/30 bg-rail/10 shadow-rail">
-          <span class="font-mono text-lg font-bold text-rail">S</span>
-        </div>
-        <div>
-          <div class="text-sm font-extrabold uppercase tracking-[0.22em] text-white">Synrail</div>
-          <div class="text-[10px] uppercase tracking-[0.18em] text-zinc-500">by NexusShellAI</div>
-        </div>
-      </a>
-      <div class="hidden items-center gap-7 text-sm text-zinc-400 md:flex">
-        <a href="#demo" class="transition hover:text-white">Demo</a>
-        <a href="#why" class="transition hover:text-white">Why</a>
-        <a href="#use" class="transition hover:text-white">Use cases</a>
-        <a href="#run" class="transition hover:text-white">Run locally</a>
-        <a href="#transparency" class="transition hover:text-white">Team</a>
-      </div>
-      <a href="https://github.com/USBVadik/synrail" target="_blank" rel="noopener" class="rounded-xl border border-rail/35 px-4 py-2 text-sm font-semibold text-railsoft transition hover:border-rail hover:bg-rail/10 hover:text-white">GitHub</a>
-    </div>
-  </nav>
-
-  <main id="top">
-    <section class="relative overflow-hidden pt-32 pb-20 sm:pt-40 sm:pb-28">
-      <div class="mx-auto grid max-w-7xl items-center gap-12 px-5 sm:px-6 lg:grid-cols-[1.05fr_.95fr]">
-        <div>
-          <div class="mb-7 inline-flex items-center gap-2 rounded-full border border-rail/30 bg-rail/10 px-3 py-1.5 font-mono text-[11px] font-semibold uppercase tracking-[0.18em] text-railsoft">
-            <span class="h-1.5 w-1.5 rounded-full bg-mint"></span>
-            Public alpha / Apache-2.0 / local CLI
-          </div>
-          <h1 class="max-w-4xl text-5xl font-extrabold leading-[0.96] tracking-tight text-white sm:text-6xl lg:text-7xl">
-            Catch <span class="gradient-text">false-green</span> AI-agent work before you accept it.
-          </h1>
-          <p class="mt-7 max-w-2xl text-lg leading-8 text-zinc-400 sm:text-xl">
-            Synrail is a local proof gate for coding agents. It does not write code. It asks whether the agent is allowed to claim the task is done.
-          </p>
-          <div class="mt-8 flex flex-col gap-3 sm:flex-row">
-            <a href="https://github.com/USBVadik/synrail#readme" target="_blank" rel="noopener" class="inline-flex items-center justify-center rounded-xl bg-rail px-6 py-3.5 font-bold text-ink transition hover:bg-railsoft">Run the GitHub demo</a>
-            <a href="#run" class="inline-flex items-center justify-center rounded-xl border border-line bg-card/70 px-6 py-3.5 font-semibold text-zinc-200 transition hover:border-rail/60 hover:text-white">Install in 2 minutes</a>
-          </div>
-          <div class="mt-8 grid max-w-2xl grid-cols-2 gap-3 sm:grid-cols-4">
-            <div class="rounded-2xl border border-line bg-card/60 p-4">
-              <div class="font-mono text-lg font-bold text-mint">Open</div>
-              <div class="mt-1 text-xs text-zinc-500">Apache-2.0</div>
-            </div>
-            <div class="rounded-2xl border border-line bg-card/60 p-4">
-              <div class="font-mono text-lg font-bold text-railsoft">Local</div>
-              <div class="mt-1 text-xs text-zinc-500">No hosted lock-in</div>
-            </div>
-            <div class="rounded-2xl border border-line bg-card/60 p-4">
-              <div class="font-mono text-lg font-bold text-warn">Alpha</div>
-              <div class="mt-1 text-xs text-zinc-500">Narrow and honest</div>
-            </div>
-            <div class="rounded-2xl border border-line bg-card/60 p-4">
-              <div class="font-mono text-lg font-bold text-white">CI</div>
-              <div class="mt-1 text-xs text-zinc-500">Tests + audit path</div>
-            </div>
-          </div>
-        </div>
-
-        <div id="demo" class="rail-card rounded-3xl border border-rail/25 p-5 shadow-rail sm:p-7">
-          <div class="mb-5 flex items-center justify-between border-b border-line pb-4">
-            <div class="flex gap-2">
-              <span class="h-3 w-3 rounded-full bg-danger/70"></span>
-              <span class="h-3 w-3 rounded-full bg-warn/80"></span>
-              <span class="h-3 w-3 rounded-full bg-mint/80"></span>
-            </div>
-            <span class="font-mono text-xs text-zinc-500">synrail check</span>
-          </div>
-          <div class="space-y-4 font-mono text-sm leading-6 sm:text-base">
-            <div>
-              <p class="text-zinc-500">Agent:</p>
-              <p class="text-white">done, tests passed</p>
-            </div>
-            <div class="rounded-2xl border border-line bg-ink/70 p-4">
-              <span class="terminal-line text-zinc-300">python3 alpha.py check</span>
-              <p class="mt-3 font-bold text-danger">Synrail: Status: Proof Invalid</p>
-              <p class="text-warn">Reason: verification command not executed</p>
-              <p class="text-zinc-300">Next: repair final_result.json</p>
-            </div>
-            <div class="rounded-2xl border border-mint/20 bg-mint/5 p-4">
-              <p class="text-zinc-400">After real verification:</p>
-              <p class="mt-2 font-bold text-mint">Synrail: Status: Accepted</p>
-            </div>
-          </div>
-          <p class="mt-5 text-sm leading-6 text-zinc-500">Only <code class="rounded bg-mint/10 px-1.5 py-0.5 font-mono text-mint">Status: Accepted</code> means the task may be reported as complete.</p>
-        </div>
-      </div>
-    </section>
-
-    <section id="why" class="border-y border-line/80 bg-surface/70 py-20">
-      <div class="mx-auto grid max-w-7xl gap-8 px-5 sm:px-6 lg:grid-cols-3">
-        <div class="lg:col-span-1">
-          <p class="font-mono text-xs font-bold uppercase tracking-[0.2em] text-rail">The skeptical question</p>
-          <h2 class="mt-3 text-3xl font-bold tracking-tight text-white sm:text-4xl">Is this just post-review?</h2>
-        </div>
-        <div class="space-y-6 text-lg leading-8 text-zinc-400 lg:col-span-2">
-          <p>Not exactly. A normal post-review asks: <span class="text-white">is this code good?</span> Synrail asks a narrower question first: <span class="text-white">is the agent allowed to claim this task is done?</span></p>
-          <p>If you personally read every diff, run every check, and track every agent step, Synrail may be unnecessary overhead. In that case, you are already acting as Synrail manually.</p>
-          <p class="rounded-3xl border border-rail/25 bg-rail/10 p-6 text-railsoft">Synrail becomes useful when you stop being the runtime supervisor: repeated agent runs, long context, failed repairs, second-operator handoff, or proof-sensitive changes.</p>
-        </div>
-      </div>
-    </section>
-
-    <section id="use" class="py-20">
-      <div class="mx-auto max-w-7xl px-5 sm:px-6">
-        <div class="mb-12 max-w-3xl">
-          <p class="font-mono text-xs font-bold uppercase tracking-[0.2em] text-rail">Where it fits</p>
-          <h2 class="mt-3 text-3xl font-bold tracking-tight text-white sm:text-4xl">Use Synrail when verification debt compounds.</h2>
-        </div>
-        <div class="grid gap-5 md:grid-cols-3">
-          <div class="rounded-3xl border border-line bg-card/75 p-6">
-            <h3 class="text-xl font-bold text-white">Batch agent work</h3>
-            <p class="mt-3 leading-7 text-zinc-400">You ask an agent to update many files or run repeated small tasks, and manual proof tracking starts getting expensive.</p>
-          </div>
-          <div class="rounded-3xl border border-line bg-card/75 p-6">
-            <h3 class="text-xl font-bold text-white">Failed repair loops</h3>
-            <p class="mt-3 leading-7 text-zinc-400">The agent says it fixed the issue, another agent says it is still broken, and you need a bounded next step instead of chat archaeology.</p>
-          </div>
-          <div class="rounded-3xl border border-line bg-card/75 p-6">
-            <h3 class="text-xl font-bold text-white">Handoff-safe proof</h3>
-            <p class="mt-3 leading-7 text-zinc-400">A second operator or agent needs to understand what was accepted, what was blocked, why, and what is allowed next.</p>
-          </div>
-        </div>
-        <div class="mt-6 rounded-3xl border border-warn/25 bg-warn/10 p-6">
-          <h3 class="font-bold text-warn">You may not need Synrail if...</h3>
-          <p class="mt-2 leading-7 text-zinc-400">The task is tiny, you inspect every changed line, you run verification yourself, and a false-green costs less than running the gate. Synrail is intentionally not a universal correctness machine.</p>
-        </div>
-      </div>
-    </section>
-
-    <section class="border-y border-line/80 bg-surface/70 py-20">
-      <div class="mx-auto max-w-7xl px-5 sm:px-6">
-        <div class="mb-12 grid gap-8 lg:grid-cols-[.85fr_1.15fr] lg:items-end">
-          <div>
-            <p class="font-mono text-xs font-bold uppercase tracking-[0.2em] text-rail">What Synrail checks</p>
-            <h2 class="mt-3 text-3xl font-bold tracking-tight text-white sm:text-4xl">claimed_done != accepted_done</h2>
-          </div>
-          <p class="leading-8 text-zinc-400">Synrail keeps acceptance separate from execution. The agent can produce code, but the proof gate decides whether the work may be accepted.</p>
-        </div>
-        <div class="overflow-hidden rounded-3xl border border-line bg-card/80">
-          <div class="grid border-b border-line bg-ink/50 px-5 py-3 font-mono text-xs uppercase tracking-[0.16em] text-zinc-500 md:grid-cols-4">
-            <div>Scenario</div><div>Agent rules</div><div>CI alone</div><div>Synrail</div>
-          </div>
-          <div class="divide-y divide-line text-sm md:text-base">
-            <div class="grid gap-3 px-5 py-5 md:grid-cols-4"><div class="font-semibold text-white">Tests claimed but not run</div><div class="text-zinc-500">Usually missed</div><div class="text-zinc-500">Maybe later</div><div class="text-mint">Blocks before accept</div></div>
-            <div class="grid gap-3 px-5 py-5 md:grid-cols-4"><div class="font-semibold text-white">Proof does not match changed files</div><div class="text-zinc-500">Weak</div><div class="text-zinc-500">Partial signal</div><div class="text-mint">Requires matched proof</div></div>
-            <div class="grid gap-3 px-5 py-5 md:grid-cols-4"><div class="font-semibold text-white">Repair handoff is unclear</div><div class="text-zinc-500">Chat context</div><div class="text-zinc-500">No answer</div><div class="text-mint">Names one bounded step</div></div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section id="run" class="py-20">
-      <div class="mx-auto grid max-w-7xl gap-8 px-5 sm:px-6 lg:grid-cols-[.9fr_1.1fr] lg:items-start">
-        <div>
-          <p class="font-mono text-xs font-bold uppercase tracking-[0.2em] text-rail">Run locally</p>
-          <h2 class="mt-3 text-3xl font-bold tracking-tight text-white sm:text-4xl">Try the false-green demo in about two minutes.</h2>
-          <p class="mt-5 leading-8 text-zinc-400">The public alpha is a local CLI. It is designed to wrap existing coding-agent workflows, not replace your editor, CI, or code review.</p>
-        </div>
-        <div class="rounded-3xl border border-line bg-card/85 p-5 font-mono text-sm leading-7 shadow-rail">
-          <span class="terminal-line text-zinc-300">git clone https://github.com/USBVadik/synrail</span>
-          <span class="terminal-line text-zinc-300">cd synrail</span>
-          <span class="terminal-line text-zinc-300">make install-dev</span>
-          <span class="terminal-line text-zinc-300">make demo</span>
-          <div class="mt-5 rounded-2xl border border-line bg-ink/70 p-4 text-zinc-500">
-            <p>Fallback without make:</p>
-            <p class="mt-2 text-zinc-300">python3 -m pip install -e ".[dev]" -c constraints-dev.txt</p>
-            <p class="text-zinc-300">./examples/false-green-demo/run_demo.sh</p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section id="transparency" class="border-y border-line/80 bg-surface/70 py-20">
-      <div class="mx-auto max-w-7xl px-5 sm:px-6">
-        <div class="max-w-3xl">
-          <p class="font-mono text-xs font-bold uppercase tracking-[0.2em] text-rail">Operational transparency</p>
-          <h2 class="mt-3 text-3xl font-bold tracking-tight text-white sm:text-4xl">Built in public by NexusShellAI.</h2>
-          <p class="mt-5 leading-8 text-zinc-400">Synrail is the current public product of NexusShellAI: a focused developer tool for AI-agent reliability, proof, bounded repair, and handoff.</p>
-        </div>
-        <div class="mt-10 grid gap-5 md:grid-cols-3">
-          <a href="https://github.com/USBVadik" target="_blank" rel="noopener" class="rounded-3xl border border-line bg-card/75 p-6 transition hover:border-rail/50">
-            <div class="font-mono text-xs uppercase tracking-[0.18em] text-zinc-500">Founder / maintainer</div>
-            <div class="mt-3 text-xl font-bold text-white">Vadik / USBVadik</div>
-            <p class="mt-3 text-sm leading-6 text-zinc-500">Public GitHub profile and project owner.</p>
-          </a>
-          <a href="https://github.com/USBVadik/synrail" target="_blank" rel="noopener" class="rounded-3xl border border-line bg-card/75 p-6 transition hover:border-rail/50">
-            <div class="font-mono text-xs uppercase tracking-[0.18em] text-zinc-500">Live product</div>
-            <div class="mt-3 text-xl font-bold text-white">Synrail repository</div>
-            <p class="mt-3 text-sm leading-6 text-zinc-500">Source, issues, demo, CI, and alpha tester protocol.</p>
-          </a>
-          <a href="https://x.com/a_seven_life" target="_blank" rel="noopener" class="rounded-3xl border border-line bg-card/75 p-6 transition hover:border-rail/50">
-            <div class="font-mono text-xs uppercase tracking-[0.18em] text-zinc-500">Public updates</div>
-            <div class="mt-3 text-xl font-bold text-white">@a_seven_life</div>
-            <p class="mt-3 text-sm leading-6 text-zinc-500">Build-in-public notes and false-green research threads.</p>
-          </a>
-        </div>
-      </div>
-    </section>
-
-    <section id="contact" class="py-20">
-      <div class="mx-auto max-w-4xl px-5 text-center sm:px-6">
-        <p class="font-mono text-xs font-bold uppercase tracking-[0.2em] text-rail">Alpha feedback</p>
-        <h2 class="mt-3 text-3xl font-bold tracking-tight text-white sm:text-5xl">Use Synrail on one real agent task and tell us where it hurts.</h2>
-        <p class="mx-auto mt-5 max-w-2xl leading-8 text-zinc-400">The next milestone is not more abstraction. It is 3-5 real external testers using Synrail around Claude Code, Cursor, Codex, Gemini CLI, Aider, or custom agent loops.</p>
-        <div class="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
-          <a href="https://github.com/USBVadik/synrail/issues" target="_blank" rel="noopener" class="inline-flex items-center justify-center rounded-xl bg-rail px-6 py-3.5 font-bold text-ink transition hover:bg-railsoft">Open alpha feedback</a>
-          <a href="/synrail" class="inline-flex items-center justify-center rounded-xl border border-line bg-card/70 px-6 py-3.5 font-semibold text-zinc-200 transition hover:border-rail/60 hover:text-white">Read product page</a>
-        </div>
-      </div>
-    </section>
-  </main>
-
-  <footer class="border-t border-line bg-ink py-10">
-    <div class="mx-auto flex max-w-7xl flex-col gap-6 px-5 text-sm text-zinc-500 sm:px-6 md:flex-row md:items-center md:justify-between">
-      <div>
-        <div class="font-bold uppercase tracking-[0.18em] text-zinc-300">NexusShellAI / Synrail</div>
-        <div class="mt-1">Public alpha developer tool for AI-agent reliability.</div>
-      </div>
-      <div class="flex flex-wrap gap-5">
-        <a href="https://github.com/USBVadik/synrail" target="_blank" rel="noopener" class="hover:text-white">GitHub</a>
-        <a href="https://github.com/USBVadik/synrail/issues" target="_blank" rel="noopener" class="hover:text-white">Issues</a>
-        <a href="/synrail" class="hover:text-white">Synrail page</a>
-        <a href="https://x.com/a_seven_life" target="_blank" rel="noopener" class="hover:text-white">X / Twitter</a>
-      </div>
-    </div>
-  </footer>
-</body>
-</html>
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NexusShell | Vadik’s projects and ongoing work</title><meta name="description" content="AI tools, onchain systems, and ongoing work by Vadik. Synrail, RHOOK, OneLink Pay, and TuringVault."><link rel="canonical" href="https://nexusshell.dev/">
+<meta name="color-scheme" content="light dark"><meta name="theme-color" content="#f6f7f9" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#14171c" media="(prefers-color-scheme: dark)">
+<meta property="og:type" content="website"><meta property="og:site_name" content="NexusShell"><meta property="og:title" content="NexusShell | Vadik’s projects and ongoing work"><meta property="og:description" content="AI tools, onchain systems, and ongoing work by Vadik. Synrail, RHOOK, OneLink Pay, and TuringVault."><meta property="og:url" content="https://nexusshell.dev/"><meta property="og:image" content="https://nexusshell.dev/assets/media/nexusshell-preview.jpg"><meta property="og:image:alt" content="NexusShell, the projects and ongoing work of Vadik."><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml"><link rel="preload" href="/assets/fonts/manrope-regular.ttf" as="font" type="font/ttf" crossorigin>
+<script>try{const t=localStorage.getItem('nexusshell-theme');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t;}catch(_){}</script>
+<link rel="stylesheet" href="/assets/site.css?v=649361658374"><script defer src="/assets/site.js?v=f8cb63e20b76"></script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "WebPage", "name": "NexusShell | Vadik’s projects and ongoing work", "url": "https://nexusshell.dev/", "isPartOf": {"@type": "WebSite", "name": "NexusShell", "url": "https://nexusshell.dev/"}}</script>
+</head><body><a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header"><div class="wrap header-inner">
+<a class="brand" href="/" aria-label="NexusShell home"><span class="brand-mark" aria-hidden="true">n</span>nexusshell</a>
+<nav class="primary-nav" aria-label="Main navigation"><a href="/projects/">Projects</a><a href="/about/">About</a><a href="/updates/">Updates</a><a href="https://github.com/USBVadik" class="" rel="noopener noreferrer" target="_blank">GitHub<span class="arrow" aria-hidden="true">↗</span></a></nav>
+<label class="sr-only" for="theme">Appearance</label><select class="theme-control" id="theme" data-theme-select hidden><option value="system">System</option><option value="light">Light</option><option value="dark">Dark</option></select>
+</div></header><main id="main" class="wrap"><div id="top"></div><section class="intro"><p class="byline"><span>Vadik</span><span class="slash" aria-hidden="true">/</span><span>USBVadik</span></p>
+<h1>AI tools &amp;<br>onchain systems.</h1><p class="lede">Working on <a href="/projects/synrail/">Synrail</a> and <a href="/projects/rhook/">RHOOK</a>: checking agent work and making onchain execution easier to understand.</p></section>
+<section class="section first-section" id="work"><span id="technology" class="legacy-anchor"></span><span id="demo" class="legacy-anchor"></span><span id="run" class="legacy-anchor"></span><span id="why" class="legacy-anchor"></span><span id="use" class="legacy-anchor"></span>
+<div class="section-head"><h2>Current work</h2></div><div class="work-grid"><a class="project-card" href="/projects/synrail/"><div class="project-title card-heading"><h3>Synrail</h3><span class="project-status">Ongoing</span></div><div class="project-visual synrail"><img src="/assets/media/synrail-demo.png" alt="The Synrail demo, showing a failed verification followed by an accepted result." width="1500" height="760" fetchpriority="high"></div>
+<div class="project-card-body">
+<p>Checking whether an AI coding agent has enough evidence to call its work done.</p><div class="project-card-foot"><span class="project-kind">Developer tools</span><span>View project <span class="arrow" aria-hidden="true">↗</span></span></div></div></a><a class="project-card" href="/projects/rhook/"><div class="project-title card-heading"><h3>RHOOK</h3><span class="project-status">Ongoing</span></div><div class="project-visual rhook"><div class="branch-figure"><svg viewBox="0 0 490 220" role="img" aria-label="RHOOK replay model: an original branch A, B, X, C, D is compared with a branch where X is changed and C and D are recomputed.">
+<text class="label" x="20" y="25">Historical execution</text><text class="label accent-text" x="20" y="205">Replay after one changed input</text>
+<path class="track" d="M45 70H445"/><path class="changed-track" d="M145 70C195 70 190 149 245 149H445"/>
+<rect class="node" x="23" y="48" width="44" height="44" rx="8"/><text x="45" y="76" text-anchor="middle">A</text>
+<rect class="node" x="123" y="48" width="44" height="44" rx="8"/><text x="145" y="76" text-anchor="middle">B</text>
+<rect class="node" x="223" y="48" width="44" height="44" rx="8"/><text x="245" y="76" text-anchor="middle">X</text>
+<rect class="node" x="323" y="48" width="44" height="44" rx="8"/><text x="345" y="76" text-anchor="middle">C</text>
+<rect class="node" x="423" y="48" width="44" height="44" rx="8"/><text x="445" y="76" text-anchor="middle">D</text>
+<rect class="changed-node" x="223" y="127" width="44" height="44" rx="8"/><text class="accent-text" x="245" y="155" text-anchor="middle">X′</text>
+<rect class="changed-node" x="323" y="127" width="44" height="44" rx="8"/><text class="accent-text" x="345" y="155" text-anchor="middle">C′</text>
+<rect class="changed-node" x="423" y="127" width="44" height="44" rx="8"/><text class="accent-text" x="445" y="155" text-anchor="middle">D′</text>
+</svg></div></div>
+<div class="project-card-body">
+<p>Changing one historical input, then replaying what happens to the transactions that follow.</p><div class="project-card-foot"><span class="project-kind">Onchain research</span><span>View project <span class="arrow" aria-hidden="true">↗</span></span></div></div></a></div></section>
+<section class="section" id="updates"><div class="section-head"><h2>Recent work</h2><p>A few changes from the public repositories.</p></div><ul class="change-list"><li><a class="change-link" href="https://github.com/USBVadik/rhook/commit/c6bf3e397864bb506100917c5b9a1aba6328132b" target="_blank" rel="noopener noreferrer"><time class="change-date" datetime="2026-09-24">24 Sep 2026</time><span class="change-project">RHOOK</span><span class="change-title">A reproducible replay on Robinhood Chain</span><span class="arrow" aria-hidden="true">↗</span></a></li><li><a class="change-link" href="https://github.com/USBVadik/rhook/commit/1e7afa25f3b2aad673938ddcc417dbb8755ca41e" target="_blank" rel="noopener noreferrer"><time class="change-date" datetime="2026-09-16">16 Sep 2026</time><span class="change-project">RHOOK</span><span class="change-title">Tighter checks on execution evidence</span><span class="arrow" aria-hidden="true">↗</span></a></li><li><a class="change-link" href="https://github.com/USBVadik/synrail/commit/6b6536b7911635e24856021be757c1b0ea5fb807" target="_blank" rel="noopener noreferrer"><time class="change-date" datetime="2026-09-15">15 Sep 2026</time><span class="change-project">Synrail</span><span class="change-title">Looking at what a pull request can change</span><span class="arrow" aria-hidden="true">↗</span></a></li></ul><a class="more-link" href="/updates/">All updates <span class="arrow" aria-hidden="true">→</span></a></section>
+<section class="section"><div class="section-head"><h2>Other projects</h2><p>Working applications, hackathon builds, and the ideas they helped explore.</p></div><div class="other-grid"><a class="other-card" href="/projects/onelink-pay/"><div class="other-image"><img src="/assets/media/onelink-pay-app.jpg" alt="OneLink Pay application interface." width="1280" height="720" loading="lazy"></div>
+<h3>OneLink Pay <span class="arrow" aria-hidden="true">↗</span></h3><p>Spending permissions with limits, revocation, and a receipt you can inspect.</p><div class="quiet-meta">UXmaxx 2026 <span aria-hidden="true">/</span> Payments</div></a><a class="other-card" href="/projects/turingvault/"><div class="other-image"><img src="/assets/media/turingvault-app.jpg" alt="TuringVault application interface." width="1276" height="718" loading="lazy"></div>
+<h3>TuringVault <span class="arrow" aria-hidden="true">↗</span></h3><p>An AI portfolio experiment with recorded proposals, validation, and execution evidence.</p><div class="quiet-meta">Turing Test 2026 <span aria-hidden="true">/</span> AI & onchain systems</div></a></div>
+<div class="origin-row"><p>The first experiments were Telegram bots and agent automation.</p><a href="/projects/agent-automation/">Where it started <span class="arrow" aria-hidden="true">↗</span></a></div></section>
+<section class="section about-preview" id="transparency"><h2>A little background.</h2><div><p>I started by setting up Telegram bots and automations. Hackathons gave some of those interests a deadline and a working application.</p><p>These days I’m spending more time on Synrail and RHOOK, working through the checks, examples, and documentation around them.</p><a class="text-link" href="/about/">More about me <span class="arrow" aria-hidden="true">→</span></a></div></section></main><footer class="site-footer" id="contact"><div class="wrap">
+<div class="contact-row"><div><h2>Have a question about a project?</h2><p>You can find me on GitHub or reach me on X.</p></div>
+<div class="contact-links"><a href="https://github.com/USBVadik" class="" rel="noopener noreferrer" target="_blank">GitHub<span class="arrow" aria-hidden="true">↗</span></a><a href="https://x.com/a_seven_life" class="" rel="noopener noreferrer" target="_blank">Say hello on X<span class="arrow" aria-hidden="true">↗</span></a></div></div>
+<div class="footer-bottom"><p>NexusShell <span aria-hidden="true">/</span> Vadik</p><p><a href="/updates/">Updates from the work</a></p></div>
+</div></footer></body></html>
