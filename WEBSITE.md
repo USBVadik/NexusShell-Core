@@ -51,6 +51,8 @@ sections. The home also retains `#top`, `#technology`, `#transparency`, and `#co
 ## Assets and sources
 
 - Manrope is self-hosted under the SIL Open Font License in `assets/fonts/OFL-Manrope.txt`.
+- Barlow Condensed is self-hosted under the SIL Open Font License in
+  `assets/fonts/OFL-BarlowCondensed.txt`.
 - Synrail recording and poster: the public `USBVadik/synrail` false-green demo.
 - OneLink Pay screenshot: `https://onelink-pay.vercel.app/`, captured 28 September 2026.
 - TuringVault screenshot: `https://turingvault.dev/`, captured 28 September 2026.
@@ -60,6 +62,11 @@ sections. The home also retains `#top`, `#technology`, `#transparency`, and `#co
   `website/content.py`. The Mantle project-specific award note is the author's
   post; the Demo Day image independently shows participation, not the award.
 - `nexusshell-preview.jpg`: a screenshot of this site for link previews.
+
+The visual direction and interaction decisions are recorded in `website/DESIGN.md`.
+The RHOOK home control switches a conceptual diagram. It does not run a replay.
+The Synrail preview opens the actual recorded demo in a native accessible dialog;
+without JavaScript it links to the product page instead.
 
 ## Review and publication
 
