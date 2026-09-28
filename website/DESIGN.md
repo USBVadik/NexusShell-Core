@@ -1,33 +1,40 @@
-# Visual revision
+# Visual direction
 
-The author's feedback on the first preview was that it felt dull. A modest voice
-should still have a distinct visual identity. This revision keeps the content and
-routes while replacing the presentation.
+The third preview addresses the author's criticism of both composition and layout.
+The staggered gallery and enlarged screenshots made the site look misaligned.
+Changing a display font and an accent color had not solved the presentation.
 
-Design read: a developer's ongoing workshop for a technical audience, with large
-condensed type, graphite surfaces, an acid-green accent, and actual project media.
-This is a custom visual language implemented in native HTML/CSS, not an official
-design system. Dials: DESIGN_VARIANCE 7, MOTION_INTENSITY 3, VISUAL_DENSITY 4.
+Design read: a personal developer portfolio for people who want to inspect the
+work, with an editorial opening and spacious project demonstrations. Native
+HTML/CSS remains appropriate for the existing static site. This is a custom design,
+not an implementation of an external design system.
 
-| Before | After | Purpose |
+Dials: DESIGN_VARIANCE 4, MOTION_INTENSITY 2, VISUAL_DENSITY 4. Consistent alignment
+and readable project material take priority over decorative asymmetry.
+
+| Before | After | Why |
 | --- | --- | --- |
-| Manrope at similar weights throughout | Barlow Condensed display type with Manrope body copy | Establish a recognizable hierarchy |
-| Blue on grey, repeated outlined cards | Graphite and green, two unequal project stages | Give the current projects a stronger presence |
-| A small Synrail poster inside a card | A larger crop of the real recording, opening the full video | Make the demonstration easier to try |
-| A static replay diagram | Original/changed-input comparison | Explain the branch model through interaction |
-| Repeated two-column grids | Asymmetric current work, change log, staggered application gallery | Vary the reading rhythm |
+| Condensed uppercase display type | Manrope hierarchy and a serif italic line in the opening | A quieter personal introduction without making every heading a poster |
+| Olive surfaces and bright green | Neutral charcoal/ivory with a restrained warm accent | Let the actual products carry most of the color |
+| Two cramped current-project tiles | Full-width studies with text and demonstrations on a shared column grid | Give each ongoing project room to explain its purpose |
+| Screenshots wider than their frames | Full images at their native aspect ratio | Keep the application interfaces intact |
+| A lowered second gallery card | Equal media widths, aligned headings and metadata | Resolve the specific layout fault in the user's screenshot |
+| Large repeated slogan sections | Smaller development notes and background sections | Put the projects ahead of self-description |
 
-The RHOOK interaction is explicitly a conceptual model, not an execution engine or
-a fabricated result. The Synrail preview uses the real public recording. Its crop
-is a presentation choice; the modal video and product page show the full frame.
+Synrail uses the actual recorded demo, now without a crop. It opens in a native
+video dialog and links to a transcript. RHOOK remains an explicitly labeled
+conceptual model; its switch does not execute a replay. Both have direct source
+links next to their case links.
 
-Movement is confined to input feedback and the changed branch appearing. Keyboard
-branch changes are immediate. Reduced-motion preferences disable transitions. The
-video starts only after the visitor requests it and pauses when its dialog closes.
+The application gallery uses flex columns to align the metadata even when the
+summaries wrap differently. At narrow widths the same content becomes a single
+column. No image zoom or translation occurs on hover. Motion is confined to small
+link feedback and the RHOOK branch transition; keyboard branch changes are instant
+and reduced-motion preferences are respected.
 
-Both light and dark themes use the same palette family and hierarchy. Minimum
-text-token contrast across the defined page surfaces is 4.91:1 in light mode and
-6.33:1 in dark mode. The logo's wordmark and geometry, navigation, route slugs,
-legacy anchors, project facts, and award placement are preserved.
+Manrope is self-hosted. The opening italic uses Georgia with a serif fallback.
+The shared palette also applies to case pages, the catalog, About, and Updates.
+Project facts, route slugs, legacy anchors, and award evidence remain unchanged.
 
-Barlow Condensed and Manrope are self-hosted with their SIL Open Font Licenses.
+Minimum text-token contrast across the defined page surfaces: 4.88:1 in light mode
+and 6.89:1 in dark mode. See QA.md for the scope and limits of verification.

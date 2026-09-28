@@ -37,7 +37,7 @@ def header(active):
 
 def footer():
     return f'''<footer class="site-footer" id="contact"><div class="wrap">
-<div class="contact-row"><div><h2>Let’s talk<br>about the work.</h2><p>You can find me on GitHub or reach me on X.</p></div>
+<div class="contact-row"><div><h2>Have something<br>in mind?</h2><p>A question, an idea, or something worth building.</p></div>
 <div class="contact-links">{link('GitHub', 'https://github.com/USBVadik')}{link('Say hello on X', 'https://x.com/a_seven_life')}</div></div>
 <div class="footer-bottom"><p>NexusShell <span aria-hidden="true">/</span> Vadik</p><p><a href="/updates/">Updates from the work</a></p></div>
 </div></footer>'''
@@ -50,9 +50,9 @@ def page(path, title, description, body, active='', schema=None):
     text = f'''<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{e(title)}</title><meta name="description" content="{e(description, quote=True)}"><link rel="canonical" href="{canonical}">
-<meta name="color-scheme" content="light dark"><meta name="theme-color" content="#f3f4ee" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#151713" media="(prefers-color-scheme: dark)">
+<meta name="color-scheme" content="light dark"><meta name="theme-color" content="#f7f6f2" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#141618" media="(prefers-color-scheme: dark)">
 <meta property="og:type" content="website"><meta property="og:site_name" content="NexusShell"><meta property="og:title" content="{e(title, quote=True)}"><meta property="og:description" content="{e(description, quote=True)}"><meta property="og:url" content="{canonical}"><meta property="og:image" content="{BASE}/assets/media/nexusshell-preview.jpg"><meta property="og:image:alt" content="NexusShell, the projects and ongoing work of Vadik."><meta name="twitter:card" content="summary_large_image">
-<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml"><link rel="preload" href="/assets/fonts/barlow-condensed-semibold.ttf" as="font" type="font/ttf" crossorigin>
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml"><link rel="preload" href="/assets/fonts/manrope-regular.ttf" as="font" type="font/ttf" crossorigin>
 <script>try{{const t=localStorage.getItem('nexusshell-theme');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t;}}catch(_){{}}</script>
 <link rel="stylesheet" href="{asset('/assets/site.css')}"><script defer src="{asset('/assets/site.js')}"></script>
 <script type="application/ld+json">{json.dumps(structured, ensure_ascii=False).replace('<', chr(92)+'u003c')}</script>
@@ -100,7 +100,7 @@ def current_card(project):
 
 def other_card(project):
     return f'''<a class="other-card" href="/projects/{project['slug']}/"><div class="other-image">{visual(project)}</div>
-<h3>{project['name']} <span class="arrow" aria-hidden="true">↗</span></h3><p>{project['summary']}</p><div class="quiet-meta">{project['context']} <span aria-hidden="true">/</span> {project['kind']}</div></a>'''
+<div class="other-caption"><h3>{project['name']} <span class="arrow" aria-hidden="true">↗</span></h3><p>{project['summary']}</p><div class="quiet-meta">{project['context']} <span aria-hidden="true">/</span> {project['kind']}</div></div></a>'''
 
 
 def update_rows(entries):
@@ -109,7 +109,7 @@ def update_rows(entries):
 
 def replay_lab():
     return '''<div class="replay-lab" data-replay="changed">
-<div class="replay-switch" role="group" aria-label="Replay diagram"><button type="button" data-replay-view="original" aria-pressed="false" hidden>Original</button><button type="button" data-replay-view="changed" aria-pressed="true" hidden>Changed input</button></div>
+<div class="replay-toolbar"><span class="replay-caption">Execution paths</span><div class="replay-switch" role="group" aria-label="Replay diagram"><button type="button" data-replay-view="original" aria-pressed="false" hidden>Original</button><button type="button" data-replay-view="changed" aria-pressed="true" hidden>Changed input</button></div></div>
 <svg class="replay-map" viewBox="0 0 480 290" role="img" aria-label="Conceptual replay: a changed input X creates a different branch, with C and D regenerated.">
 <path class="replay-guide" d="M42 60V252M141 60V252M240 60V252M339 60V252M438 60V252"/>
 <path class="base-path" d="M42 99H438"/><path class="fork-path" d="M141 99C195 99 183 215 240 215H438"/>
@@ -124,18 +124,16 @@ def replay_lab():
 def home():
     synrail, rhook = PROJECTS[:2]
     body = f'''<div id="top"></div>
-<section class="intro"><div class="intro-title"><p class="byline">Vadik <span aria-hidden="true">/</span> USBVadik</p><h1>AI tools.<br><span>Onchain systems.</span></h1></div><div class="intro-note"><p>I’m working on <a href="/projects/synrail/">Synrail</a> and <a href="/projects/rhook/">RHOOK</a>, with a focus on checking agent work and understanding onchain execution.</p><a class="text-link" href="#work">Explore the work <span aria-hidden="true">↘</span></a></div></section>
-<section class="current-section" id="work"><span id="technology" class="legacy-anchor"></span><span id="demo" class="legacy-anchor"></span><span id="run" class="legacy-anchor"></span><span id="why" class="legacy-anchor"></span><span id="use" class="legacy-anchor"></span><h2 class="work-label">Current work</h2>
+<section class="intro"><div class="intro-title"><p class="byline">Vadik <span aria-hidden="true">/</span> Software &amp; experiments</p><h1>Software,<br><em>in the making.</em></h1></div><div class="intro-note"><p>I build tools for AI agents and onchain systems. These days, most of that work goes into <a href="/projects/synrail/">Synrail</a> and <a href="/projects/rhook/">RHOOK</a>.</p><a class="text-link" href="#work">Explore the projects <span aria-hidden="true">↘</span></a></div></section>
+<section class="current-section" id="work"><span id="technology" class="legacy-anchor"></span><span id="demo" class="legacy-anchor"></span><span id="run" class="legacy-anchor"></span><span id="why" class="legacy-anchor"></span><span id="use" class="legacy-anchor"></span><div class="section-bar"><h2 class="work-label">01 <span>Ongoing work</span></h2><a href="/updates/">Follow the changes <span aria-hidden="true">↗</span></a></div>
 <div class="focus-grid">
-<article class="focus-project focus-synrail"><div class="focus-meta"><span>Developer tools</span><span class="ongoing-label">Ongoing</span></div><a class="focus-title" href="/projects/synrail/"><h3>Synrail</h3><span aria-hidden="true">↗</span></a><p class="focus-description">A second look at an agent’s “done”.</p>
-<a class="demo-preview" href="/synrail/#demo" data-open-demo aria-label="Play the Synrail verification demo"><img src="/assets/media/synrail-demo.png" alt="Recorded Synrail demo: a failing verification, followed by a repair and acceptance." width="1500" height="760" fetchpriority="high"><span class="play-demo"><span aria-hidden="true">▶</span> Play the demo</span></a>
-<div class="focus-bottom"><span>Local CLI · Open-source alpha</span><a href="/projects/synrail/">Inside the project <span aria-hidden="true">↗</span></a></div></article>
-<article class="focus-project focus-rhook"><div class="focus-meta"><span>Onchain research</span><span class="ongoing-label">Ongoing</span></div><a class="focus-title" href="/projects/rhook/"><h3>RHOOK</h3><span aria-hidden="true">↗</span></a><p class="focus-description">One changed input. What happens next?</p>{replay_lab()}<div class="focus-bottom"><span>Execution &amp; verification</span><a href="/projects/rhook/">Inside the project <span aria-hidden="true">↗</span></a></div></article>
+<article class="focus-project focus-synrail"><div class="focus-copy"><div class="focus-meta"><span>Developer tools</span><span class="ongoing-label">Ongoing</span></div><a class="focus-title" href="/projects/synrail/"><h3>Synrail</h3><span aria-hidden="true">↗</span></a><p class="focus-description">Checking the evidence behind an agent’s “done”.</p><p class="focus-detail">A local CLI that ties a task, a patch, and its verification together.</p><div class="focus-actions"><a class="action-link" href="/projects/synrail/">Explore Synrail <span aria-hidden="true">↗</span></a>{link('Source','https://github.com/USBVadik/synrail','text-link')}</div><div class="focus-bottom">Local CLI <span aria-hidden="true">/</span> Open-source alpha</div></div>
+<div class="project-stage synrail-stage"><div class="stage-heading"><span>Synrail / verification demo</span><span>00:08</span></div><a class="demo-preview" href="/synrail/#demo" data-open-demo aria-label="Play the Synrail verification demo"><img src="/assets/media/synrail-demo.png" alt="Recorded Synrail demo: a failing verification, followed by a repair and acceptance." width="1500" height="760" fetchpriority="high"><span class="play-demo"><span aria-hidden="true">▶</span> Watch the run</span></a><div class="stage-foot"><span>Fail → repair → verify → accept</span><a href="/synrail/#demo-transcript">Read transcript <span aria-hidden="true">↗</span></a></div></div></article>
+<article class="focus-project focus-rhook"><div class="focus-copy"><div class="focus-meta"><span>Onchain research</span><span class="ongoing-label">Ongoing</span></div><a class="focus-title" href="/projects/rhook/"><h3>RHOOK</h3><span aria-hidden="true">↗</span></a><p class="focus-description">One changed input.<br>What happens next?</p><p class="focus-detail">Replaying onchain execution to examine what changes downstream.</p><div class="focus-actions"><a class="action-link" href="/projects/rhook/">Explore RHOOK <span aria-hidden="true">↗</span></a>{link('Source','https://github.com/USBVadik/rhook','text-link')}</div><div class="focus-bottom">Deterministic replay <span aria-hidden="true">/</span> Research</div></div><div class="project-stage rhook-stage">{replay_lab()}</div></article>
 </div></section>
-<section class="recent-section" id="updates"><div class="recent-heading"><h2>Recent<br> work.</h2><a class="text-link" href="/updates/">All updates <span aria-hidden="true">↗</span></a></div>{update_rows(UPDATES[:3])}</section>
-<section class="section other-projects"><div class="section-head"><h2>Other projects</h2><p>Applications built around a question, a working demo, and a deadline.</p></div><div class="other-grid">{''.join(other_card(p) for p in PROJECTS[2:])}</div>
-<div class="origin-row"><p>The first experiments were Telegram bots and agent automation.</p><a href="/projects/agent-automation/">Where it started <span class="arrow" aria-hidden="true">↗</span></a></div></section>
-<section class="section about-preview" id="transparency"><h2>It started<br>with bots.</h2><div><p>I started by setting up Telegram bots and automations. Hackathons gave some of those interests a deadline and a working application.</p><p>These days I’m spending more time on Synrail and RHOOK, working through the checks, examples, and documentation around them.</p><a class="text-link" href="/about/">More about me <span class="arrow" aria-hidden="true">↗</span></a></div></section>
+<section class="section other-projects"><div class="section-bar"><h2 class="work-label">02 <span>Applications &amp; experiments</span></h2><span class="section-note">Built along the way</span></div><div class="other-grid">{''.join(other_card(p) for p in PROJECTS[2:])}</div></section>
+<section class="recent-section" id="updates"><div class="recent-heading"><p class="work-label">03 <span>Development notes</span></p><h2>Still at it.</h2><p>Recent changes from the repositories.</p><a class="text-link" href="/updates/">All updates <span aria-hidden="true">↗</span></a></div>{update_rows(UPDATES[:3])}</section>
+<section class="section about-preview" id="transparency"><div><p class="work-label">A little context</p><h2>It started<br>with bots.</h2></div><div><p>I started by setting up Telegram bots and automations. Hackathons gave some of those interests a deadline and a working application.</p><p>These days I’m spending more time on Synrail and RHOOK, working through the checks, examples, and documentation around them.</p><a class="text-link" href="/about/">More about me <span class="arrow" aria-hidden="true">↗</span></a></div></section>
 <dialog class="demo-dialog" id="synrail-demo-dialog" aria-labelledby="demo-dialog-title"><div class="dialog-heading"><h2 id="demo-dialog-title">Synrail / false-green demo</h2><button type="button" data-close-demo aria-label="Close demo">Close <span aria-hidden="true">×</span></button></div>{visual(synrail,True)}<p>A recorded run from the public repository. <a href="/synrail/#demo-transcript">Read the transcript</a></p></dialog>'''
     page('/', 'NexusShell | Vadik’s projects and ongoing work', 'AI tools, onchain systems, and ongoing work by Vadik. Synrail, RHOOK, OneLink Pay, and TuringVault.', body)
 

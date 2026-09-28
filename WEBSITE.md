@@ -17,7 +17,8 @@ Open `http://127.0.0.1:4173/`. Stop the server with Ctrl+C.
 - `website/content.py`: project descriptions, source links, and dated updates.
 - `website/build.py`: layouts, navigation, home, About, and Synrail product copy.
 - `assets/site.css`: shared styles and light/dark themes.
-- `assets/site.js`: appearance preference, command copying, and old home anchors.
+- `assets/site.js`: appearance preference, command copying, the demo dialog,
+  the conceptual replay switch, and old home anchors.
 - `assets/media/`: actual application screenshots, the Synrail demo, and award evidence.
 
 Run the build after editing content or shared assets. It adds content hashes to CSS
@@ -51,8 +52,8 @@ sections. The home also retains `#top`, `#technology`, `#transparency`, and `#co
 ## Assets and sources
 
 - Manrope is self-hosted under the SIL Open Font License in `assets/fonts/OFL-Manrope.txt`.
-- Barlow Condensed is self-hosted under the SIL Open Font License in
-  `assets/fonts/OFL-BarlowCondensed.txt`.
+- The opening italic uses Georgia with a serif fallback; it requires no network font.
+- Barlow Condensed files remain from the earlier preview but are no longer loaded.
 - Synrail recording and poster: the public `USBVadik/synrail` false-green demo.
 - OneLink Pay screenshot: `https://onelink-pay.vercel.app/`, captured 28 September 2026.
 - TuringVault screenshot: `https://turingvault.dev/`, captured 28 September 2026.
