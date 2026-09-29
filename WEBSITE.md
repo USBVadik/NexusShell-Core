@@ -15,10 +15,12 @@ python3 -m http.server 4173 --bind 127.0.0.1
 Open `http://127.0.0.1:4173/`. Stop the server with Ctrl+C.
 
 - `website/content.py`: project descriptions, source links, and dated updates.
-- `website/build.py`: layouts, navigation, home, About, and Synrail product copy.
+- `website/build.py`: shared layouts, navigation, About, and Synrail product copy.
+- `website/desk.py`: the interactive home and its project-specific walkthroughs.
+- `assets/desk.css` and `assets/desk.js`: home styles and interaction state.
 - `assets/site.css`: shared styles and light/dark themes.
 - `assets/site.js`: appearance preference, command copying, the demo dialog,
-  the conceptual replay switch, and old home anchors.
+  and old home anchors (plus the earlier replay switch retained for compatibility).
 - `assets/media/`: actual application screenshots, the Synrail demo, and award evidence.
 
 Run the build after editing content or shared assets. It adds content hashes to CSS
@@ -52,7 +54,6 @@ sections. The home also retains `#top`, `#technology`, `#transparency`, and `#co
 ## Assets and sources
 
 - Manrope is self-hosted under the SIL Open Font License in `assets/fonts/OFL-Manrope.txt`.
-- The opening italic uses Georgia with a serif fallback; it requires no network font.
 - Barlow Condensed files remain from the earlier preview but are no longer loaded.
 - Synrail recording and poster: the public `USBVadik/synrail` false-green demo.
 - OneLink Pay screenshot: `https://onelink-pay.vercel.app/`, captured 28 September 2026.
@@ -65,9 +66,17 @@ sections. The home also retains `#top`, `#technology`, `#transparency`, and `#co
 - `nexusshell-preview.jpg`: a screenshot of this site for link previews.
 
 The visual direction and interaction decisions are recorded in `website/DESIGN.md`.
-The RHOOK home control switches a conceptual diagram. It does not run a replay.
-The Synrail preview opens the actual recorded demo in a native accessible dialog;
-without JavaScript it links to the product page instead.
+The home keeps all four project panels in HTML. JavaScript selects the panel from
+its URL hash and enables the walkthroughs; without it, project content remains in
+document order. Synrail uses a recorded example, RHOOK a conceptual replay model,
+OneLink Pay a local calculation of one permission limit, and TuringVault a workflow
+guide. None connects a wallet or runs the underlying product. The Synrail recording
+opens in a native dialog; without JavaScript its link opens the product page.
+
+When adding a project, update `PROJECTS` and the home panel/selector in
+`website/desk.py` together. The four walkthroughs are intentionally specific to
+the existing projects, rather than automatically generated from marketing copy.
+Keep labels explicit about whether an example is recorded, conceptual, or live.
 
 ## Review and publication
 

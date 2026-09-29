@@ -5,6 +5,7 @@ from html import escape
 import json
 from hashlib import sha256
 from content import PROJECTS, UPDATES
+from desk import render as render_desk
 
 ROOT = Path(__file__).resolve().parent.parent
 BASE = 'https://nexusshell.dev'
@@ -47,6 +48,8 @@ def page(path, title, description, body, active='', schema=None):
     canonical = BASE + path
     structured = schema or {'@context': 'https://schema.org', '@type': 'WebPage', 'name': title, 'url': canonical,
                            'isPartOf': {'@type': 'WebSite', 'name': 'NexusShell', 'url': BASE + '/'}}
+    desk_assets = f'<link rel="stylesheet" href="{asset("/assets/desk.css")}"><script defer src="{asset("/assets/desk.js")}"></script>' if path == '/' else ''
+    page_footer = '<footer class="desk-footer" id="contact"><span>NexusShell / Vadik</span><div><a href="https://github.com/USBVadik">GitHub ↗</a><a href="https://x.com/a_seven_life">Say hello on X ↗</a></div></footer>' if path == '/' else footer()
     text = f'''<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{e(title)}</title><meta name="description" content="{e(description, quote=True)}"><link rel="canonical" href="{canonical}">
@@ -55,8 +58,8 @@ def page(path, title, description, body, active='', schema=None):
 <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml"><link rel="preload" href="/assets/fonts/manrope-regular.ttf" as="font" type="font/ttf" crossorigin>
 <script>try{{const t=localStorage.getItem('nexusshell-theme');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t;}}catch(_){{}}</script>
 <link rel="stylesheet" href="{asset('/assets/site.css')}"><script defer src="{asset('/assets/site.js')}"></script>
-<script type="application/ld+json">{json.dumps(structured, ensure_ascii=False).replace('<', chr(92)+'u003c')}</script>
-</head><body class="{'home-page' if path == '/' else 'inner-page'}">{header(active)}<main id="main" class="wrap">{body}</main>{footer()}</body></html>
+{desk_assets}<script type="application/ld+json">{json.dumps(structured, ensure_ascii=False).replace('<', chr(92)+'u003c')}</script>
+</head><body class="{'home-page' if path == '/' else 'inner-page'}">{header(active)}<main id="main" class="wrap">{body}</main>{page_footer}</body></html>
 '''
     dest = ROOT / (path.strip('/') + '/index.html' if path != '/' else 'index.html')
     dest.parent.mkdir(parents=True, exist_ok=True)
@@ -103,39 +106,8 @@ def other_card(project):
 <div class="other-caption"><h3>{project['name']} <span class="arrow" aria-hidden="true">↗</span></h3><p>{project['summary']}</p><div class="quiet-meta">{project['context']} <span aria-hidden="true">/</span> {project['kind']}</div></div></a>'''
 
 
-def update_rows(entries):
-    return '<ul class="change-list">' + ''.join(f'''<li><a class="change-link" href="{u['url']}" target="_blank" rel="noopener noreferrer"><time class="change-date" datetime="{u['date']}">{u['display_date']}</time><span class="change-project">{u['project']}</span><span class="change-title">{u['title']}</span><span class="arrow" aria-hidden="true">↗</span></a></li>''' for u in entries) + '</ul>'
-
-
-def replay_lab():
-    return '''<div class="replay-lab" data-replay="changed">
-<div class="replay-toolbar"><span class="replay-caption">Execution paths</span><div class="replay-switch" role="group" aria-label="Replay diagram"><button type="button" data-replay-view="original" aria-pressed="false" hidden>Original</button><button type="button" data-replay-view="changed" aria-pressed="true" hidden>Changed input</button></div></div>
-<svg class="replay-map" viewBox="0 0 480 290" role="img" aria-label="Conceptual replay: a changed input X creates a different branch, with C and D regenerated.">
-<path class="replay-guide" d="M42 60V252M141 60V252M240 60V252M339 60V252M438 60V252"/>
-<path class="base-path" d="M42 99H438"/><path class="fork-path" d="M141 99C195 99 183 215 240 215H438"/>
-<g class="history-nodes"><circle cx="42" cy="99" r="20"/><circle cx="141" cy="99" r="20"/><circle cx="240" cy="99" r="20"/><circle cx="339" cy="99" r="20"/><circle cx="438" cy="99" r="20"/>
-<text x="42" y="106">A</text><text x="141" y="106">B</text><text x="240" y="106">X</text><text x="339" y="106">C</text><text x="438" y="106">D</text></g>
-<g class="fork-nodes"><rect x="219" y="194" width="42" height="42" rx="5"/><rect x="318" y="194" width="42" height="42" rx="5"/><rect x="417" y="194" width="42" height="42" rx="5"/>
-<text x="240" y="222">X′</text><text x="339" y="222">C′</text><text x="438" y="222">D′</text></g>
-<text class="map-label" x="22" y="42">Recorded execution</text><text class="map-label fork-label" x="222" y="276">Recomputed branch</text>
-</svg><p class="replay-explanation" aria-live="polite">Change X. Replay the transactions that follow.</p><span class="model-note">Conceptual model</span></div>'''
-
-
 def home():
-    synrail, rhook = PROJECTS[:2]
-    body = f'''<div id="top"></div>
-<section class="intro"><div class="intro-title"><p class="byline">Vadik <span aria-hidden="true">/</span> Software &amp; experiments</p><h1>Software,<br><em>in the making.</em></h1></div><div class="intro-note"><p>I build tools for AI agents and onchain systems. These days, most of that work goes into <a href="/projects/synrail/">Synrail</a> and <a href="/projects/rhook/">RHOOK</a>.</p><a class="text-link" href="#work">Explore the projects <span aria-hidden="true">↘</span></a></div></section>
-<section class="current-section" id="work"><span id="technology" class="legacy-anchor"></span><span id="demo" class="legacy-anchor"></span><span id="run" class="legacy-anchor"></span><span id="why" class="legacy-anchor"></span><span id="use" class="legacy-anchor"></span><div class="section-bar"><h2 class="work-label">01 <span>Ongoing work</span></h2><a href="/updates/">Follow the changes <span aria-hidden="true">↗</span></a></div>
-<div class="focus-grid">
-<article class="focus-project focus-synrail"><div class="focus-copy"><div class="focus-meta"><span>Developer tools</span><span class="ongoing-label">Ongoing</span></div><a class="focus-title" href="/projects/synrail/"><h3>Synrail</h3><span aria-hidden="true">↗</span></a><p class="focus-description">Checking the evidence behind an agent’s “done”.</p><p class="focus-detail">A local CLI that ties a task, a patch, and its verification together.</p><div class="focus-actions"><a class="action-link" href="/projects/synrail/">Explore Synrail <span aria-hidden="true">↗</span></a>{link('Source','https://github.com/USBVadik/synrail','text-link')}</div><div class="focus-bottom">Local CLI <span aria-hidden="true">/</span> Open-source alpha</div></div>
-<div class="project-stage synrail-stage"><div class="stage-heading"><span>Synrail / verification demo</span><span>00:08</span></div><a class="demo-preview" href="/synrail/#demo" data-open-demo aria-label="Play the Synrail verification demo"><img src="/assets/media/synrail-demo.png" alt="Recorded Synrail demo: a failing verification, followed by a repair and acceptance." width="1500" height="760" fetchpriority="high"><span class="play-demo"><span aria-hidden="true">▶</span> Watch the run</span></a><div class="stage-foot"><span>Fail → repair → verify → accept</span><a href="/synrail/#demo-transcript">Read transcript <span aria-hidden="true">↗</span></a></div></div></article>
-<article class="focus-project focus-rhook"><div class="focus-copy"><div class="focus-meta"><span>Onchain research</span><span class="ongoing-label">Ongoing</span></div><a class="focus-title" href="/projects/rhook/"><h3>RHOOK</h3><span aria-hidden="true">↗</span></a><p class="focus-description">One changed input.<br>What happens next?</p><p class="focus-detail">Replaying onchain execution to examine what changes downstream.</p><div class="focus-actions"><a class="action-link" href="/projects/rhook/">Explore RHOOK <span aria-hidden="true">↗</span></a>{link('Source','https://github.com/USBVadik/rhook','text-link')}</div><div class="focus-bottom">Deterministic replay <span aria-hidden="true">/</span> Research</div></div><div class="project-stage rhook-stage">{replay_lab()}</div></article>
-</div></section>
-<section class="section other-projects"><div class="section-bar"><h2 class="work-label">02 <span>Applications &amp; experiments</span></h2><span class="section-note">Built along the way</span></div><div class="other-grid">{''.join(other_card(p) for p in PROJECTS[2:])}</div></section>
-<section class="recent-section" id="updates"><div class="recent-heading"><p class="work-label">03 <span>Development notes</span></p><h2>Still at it.</h2><p>Recent changes from the repositories.</p><a class="text-link" href="/updates/">All updates <span aria-hidden="true">↗</span></a></div>{update_rows(UPDATES[:3])}</section>
-<section class="section about-preview" id="transparency"><div><p class="work-label">A little context</p><h2>It started<br>with bots.</h2></div><div><p>I started by setting up Telegram bots and automations. Hackathons gave some of those interests a deadline and a working application.</p><p>These days I’m spending more time on Synrail and RHOOK, working through the checks, examples, and documentation around them.</p><a class="text-link" href="/about/">More about me <span class="arrow" aria-hidden="true">↗</span></a></div></section>
-<dialog class="demo-dialog" id="synrail-demo-dialog" aria-labelledby="demo-dialog-title"><div class="dialog-heading"><h2 id="demo-dialog-title">Synrail / false-green demo</h2><button type="button" data-close-demo aria-label="Close demo">Close <span aria-hidden="true">×</span></button></div>{visual(synrail,True)}<p>A recorded run from the public repository. <a href="/synrail/#demo-transcript">Read the transcript</a></p></dialog>'''
-    page('/', 'NexusShell | Vadik’s projects and ongoing work', 'AI tools, onchain systems, and ongoing work by Vadik. Synrail, RHOOK, OneLink Pay, and TuringVault.', body)
+    page('/', 'NexusShell | Vadik’s project desk', 'Explore the work of Vadik: Synrail, RHOOK, OneLink Pay and TuringVault, with interactive walkthroughs, source code and development notes.', render_desk(PROJECTS, UPDATES, visual))
 
 
 def catalog():

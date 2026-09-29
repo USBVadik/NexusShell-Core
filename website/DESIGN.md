@@ -1,40 +1,52 @@
-# Visual direction
+# Interactive project desk
 
-The third preview addresses the author's criticism of both composition and layout.
-The staggered gallery and enlarged screenshots made the site look misaligned.
-Changing a display font and an accent color had not solved the presentation.
+29 September 2026. The author chose an interactive portfolio: character through
+interface behavior and demonstrations. The home is a compact project workspace,
+with Synrail and RHOOK first, followed by the hackathon applications. Case pages
+remain documents for deeper reading. Native HTML, CSS, and JavaScript fit the
+existing static hosting; there is no external UI kit or new runtime dependency.
 
-Design read: a personal developer portfolio for people who want to inspect the
-work, with an editorial opening and spacious project demonstrations. Native
-HTML/CSS remains appropriate for the existing static site. This is a custom design,
-not an implementation of an external design system.
-
-Dials: DESIGN_VARIANCE 4, MOTION_INTENSITY 2, VISUAL_DENSITY 4. Consistent alignment
-and readable project material take priority over decorative asymmetry.
+Dials: DESIGN_VARIANCE 5, MOTION_INTENSITY 2, VISUAL_DENSITY 6. The important
+variation is in how each project can be explored, with a consistent frame and
+navigation. Manrope, a small warm accent, and restrained light/dark surfaces keep
+the working examples readable.
 
 | Before | After | Why |
 | --- | --- | --- |
-| Condensed uppercase display type | Manrope hierarchy and a serif italic line in the opening | A quieter personal introduction without making every heading a poster |
-| Olive surfaces and bright green | Neutral charcoal/ivory with a restrained warm accent | Let the actual products carry most of the color |
-| Two cramped current-project tiles | Full-width studies with text and demonstrations on a shared column grid | Give each ongoing project room to explain its purpose |
-| Screenshots wider than their frames | Full images at their native aspect ratio | Keep the application interfaces intact |
-| A lowered second gallery card | Equal media widths, aligned headings and metadata | Resolve the specific layout fault in the user's screenshot |
-| Large repeated slogan sections | Smaller development notes and background sections | Put the projects ahead of self-description |
+| Large slogan followed by a long gallery | Compact personal introduction and project selector | Start exploring the work immediately |
+| Static previews with similar compositions | Four interactions tied to the projects | Explain something specific about each system |
+| Separate large sections for current work | Persistent Synrail and RHOOK navigation, with dated notes inside | Keep continued work visible while exploring |
+| Decorative typographic contrast | One sans-serif family with monospace for code and short labels | Let content and behavior define the page |
+| A generic concluding contact block | Short colophon and public contact links | Keep the page useful without a sales pitch |
 
-Synrail uses the actual recorded demo, now without a crop. It opens in a native
-video dialog and links to a transcript. RHOOK remains an explicitly labeled
-conceptual model; its switch does not execute a replay. Both have direct source
-links next to their case links.
+## Interaction and evidence
 
-The application gallery uses flex columns to align the metadata even when the
-summaries wrap differently. At narrow widths the same content becomes a single
-column. No image zoom or translation occurs on hover. Motion is confined to small
-link feedback and the RHOOK branch transition; keyboard branch changes are instant
-and reduced-motion preferences are respected.
+- Synrail: three stages adapted from the recorded false-green example. The visitor
+  can inspect the claim, failed verification, and repair. The original recording
+  opens in a native dialog. The walkthrough does not execute commands.
+- RHOOK: inspect the historical sequence or the branch after changing X. Node
+  buttons and a range control explain the shared context, intervention, and
+  downstream recomputation. This is explicitly a conceptual model, with a link to
+  the public 50-block example, not the result of executing that example here.
+- OneLink Pay: move an amount across the demonstrated 0.10 USDC per-charge limit.
+  Passing that single check does not imply the complete payment is authorized.
+  The example is local and has no wallet, payment, or network operation.
+- TuringVault: inspect the propose/challenge/record workflow alongside the actual
+  application screenshot. It is a workflow guide, not fabricated live activity.
 
-Manrope is self-hosted. The opening italic uses Georgia with a serif fallback.
-The shared palette also applies to case pages, the catalog, About, and Updates.
-Project facts, route slugs, legacy anchors, and award evidence remain unchanged.
+Project selection is encoded in the URL. Back, forward, direct links, arrow keys,
+Home, and End work with the selector. Outputs use live regions; native buttons,
+links, range inputs, details, and the dialog provide the main controls. Without
+JavaScript the project descriptions and source links remain in document order,
+and the Synrail walkthrough renders all three stages.
 
-Minimum text-token contrast across the defined page surfaces: 4.88:1 in light mode
-and 6.89:1 in dark mode. See QA.md for the scope and limits of verification.
+A pointer selection changes the project panel with a 160ms opacity/4px transition.
+Keyboard input changes state immediately. Reduced motion disables transitions;
+there are no looping effects, autoplay, artificial loading, or cursor tricks.
+The desktop sidebar becomes a two-column selector on mobile. Application images
+keep their original aspect ratios.
+
+Recognition remains a quiet link to precise categories and supporting evidence.
+No new personal role, award, usage, financial result, or project-status claims were
+introduced. Route slugs, source content, inner pages, and legacy Synrail anchors
+remain available. See QA.md for verification scope and limits.

@@ -1,41 +1,45 @@
 # Preview verification
 
-28 September 2026. Updated for the third visual preview; checked against the local Python HTTP server, before publication.
+29 September 2026. Interactive home, checked against the local Python HTTP server
+before publication. Inner-page content and shared styles are unchanged from the
+previous preview.
 
-- The builder emits ten content pages, `404.html`, the old Synrail redirect,
-  `sitemap.xml`, and `robots.txt`. Its source parses as Python 3.11.
-- Static audit: 12 HTML files and 182 local link/asset references (absolute canonical and OG URLs excluded), with no
-  missing files, broken fragments, duplicate IDs, or missing image dimensions/alt
-  attributes. Content pages have one H1, a description, language, and canonical URL.
-- Every original ID on the home and Synrail product page remains available.
-- Browser checks: all ten content pages and the error page at 320px. No horizontal
-  overflow or broken loaded images. Also inspected the home and video dialog at
-  390px, and the home at 768, 1024, 1280, 1440, and 1920px.
-  On desktop the two application images, titles, and metadata share their top
-  coordinates. Images fit their frames without cropping. The entire page was
-  inspected by section, including RHOOK, the gallery, notes, and footer.
-- Both themes inspected again after the palette and typography changes. Selecting dark survives a reload. System mode is the
-  default and can be restored from the Appearance control.
-- Minimum text-token contrast across the page surfaces: 4.88:1 in light mode and
-  6.89:1 in dark mode. Keyboard Tab reaches the skip link with a visible outline.
-- Previously verified unchanged behavior: OneLink Pay and TuringVault award
-  disclosures open and load their evidence.
-  Synrail command copying reports success. The demo was rechecked in this revision. Video has native controls and a linked
-  text transcript. Playback starts only after the visitor opens the demo. The
-  7.88-second recording played to completion, without a media error. Escape closes
-  the dialog, pauses playback, and returns focus to the launch link.
-- Verified `/synrail.html#run` lands on `/synrail/#run`; home `#demo` lands on
-  `/synrail/#demo`, including a same-document hash change.
-- The RHOOK conceptual diagram switches with pointer and keyboard input.
-  `aria-pressed`, the explanation, and the diagram label follow the chosen state.
-  The layout reserves space so switching does not shift surrounding content.
-- Public GitHub tree checks confirmed every linked Synrail and RHOOK documentation
-  path. Commit sources for updates were checked while writing the content.
-- No browser console errors were recorded during the page navigation checks.
-- `git diff --check` passes. CSS and JavaScript references include content hashes
-  to prevent the old styling or behavior being reused after a rebuild.
+- Build: ten content pages, 404.html, the old Synrail redirect, sitemap, and robots.
+  Python source compiles; the new JavaScript passes Node syntax checking.
+- Static audit: 12 HTML files and 185 local link/asset references, with no missing
+  targets or fragments, duplicate IDs, or missing image dimensions/alt text.
+  Content pages have one H1. Canonical/OG metadata remains present.
+- All four project panels checked at 320px: no horizontal overflow or broken
+  loaded images. Synrail and RHOOK visually checked at 390px; Synrail at 768px;
+  all four project layouts inspected on desktop at 1280px. Light and dark themes
+  inspected. Appearance selection survives navigation.
+- Project selection changes the hash and sole visible panel. Browser Back and
+  direct-hash reload restore selection. Arrow keys and End move focus and select
+  the corresponding project.
+- Synrail: all three stages, next-step control, actual video dialog, and Escape
+  checked. Escape pauses playback and restores focus to the launch link. The
+  three proof stages each occupied 442px at the checked desktop size.
+- RHOOK: original/changed modes, individual replay-node selection, and range End
+  checked. Original mode disables alternate nodes and removes that branch from
+  the accessibility tree. The explanatory text and aria-pressed values update.
+- OneLink Pay: range Home yields 0.05 USDC; keyboard increments to 0.10 pass the
+  illustrated check, and 0.15 fails. Other conditions are explicitly out of scope.
+- TuringVault: Challenge and Record update the workflow explanation; the real
+  screenshot retains its complete aspect ratio.
+- A temporary script-free rendering verified the fallback: all project panels,
+  descriptions, and three Synrail stages remain readable, project anchors work,
+  and there is no overflow at 320px. The temporary file was removed.
+- New home text-token contrast across defined surfaces: at least 4.64:1 in light
+  mode and 6.73:1 in dark mode. This is a token check, not a full accessibility audit.
+- Shared case routes, award disclosures, copy controls, old Synrail redirects,
+  and all inner pages at 320px were verified in the preceding revision. They are
+  unchanged; this revision concentrates browser checks on the new home.
+- The legacy home #demo redirect was rechecked and still opens /synrail/#demo.
+- Browser error logs were empty during the interactive checks.
+- CSS/JS URLs have content hashes. git diff --check passes.
 
-Limits: this is browser and static verification, not a full accessibility audit.
-Lighthouse and production Core Web Vitals have not been measured. The supported
-browser tools in this session do not expose a Lighthouse runner. Visiting external
-product screens does not verify wallet/payment flows or current system health.
+Limits: the examples explain behavior and distinguish recordings, models, and
+local calculations. They do not execute Synrail or RHOOK, validate payment flows,
+or establish product health. Public sources were checked when the case content
+was written; this revision does not revalidate current repository state.
+Lighthouse, production Core Web Vitals, and a full accessibility audit were not run.
