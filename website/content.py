@@ -154,7 +154,7 @@ PROJECTS = [
             'alt': 'Mantle Turing Test 2026 Demo Day programme listing TuringVault in AI Trading and Strategy on 2 July.',
             'caption': 'Demo Day programme. The award announcement is linked separately above.',
         },
-        'caption': 'The TuringVault interface, captured on 28 September 2026. The image is a snapshot of the demo, not a live status feed.',
+        'caption': 'The TuringVault agent console, captured on 29 September 2026. The image is a snapshot of the demo, not a live status feed.',
         'note': 'Built for the Mantle Turing Test 2026. Public application and source code remain available to inspect.',
     },
 ]

@@ -90,8 +90,8 @@ def visual(project, full=False):
         if full:
             return '<video controls playsinline preload="none" width="1500" height="760" poster="/assets/media/synrail-demo.png" aria-label="Synrail false-green verification demo"><source src="/assets/media/synrail-demo.mp4" type="video/mp4"><a href="/assets/media/synrail-demo.mp4">Watch the Synrail demo</a></video>'
         return '<img src="/assets/media/synrail-demo.png" alt="The Synrail demo, showing a failed verification followed by an accepted result." width="1500" height="760" fetchpriority="high">'
-    filename = 'onelink-pay-app.jpg' if media == 'onelink-pay' else 'turingvault-app.jpg'
-    width,height = (1280,720) if media == 'onelink-pay' else (1276,718)
+    filename = 'onelink-pay-app.jpg' if media == 'onelink-pay' else 'turingvault-console.jpg'
+    width,height = (1280,720) if media == 'onelink-pay' else (1152,617)
     return f'<img src="/assets/media/{filename}" alt="{e(project["name"])} application interface." width="{width}" height="{height}" loading="lazy">'
 
 

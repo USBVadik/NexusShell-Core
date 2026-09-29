@@ -57,7 +57,8 @@ sections. The home also retains `#top`, `#technology`, `#transparency`, and `#co
 - Barlow Condensed files remain from the earlier preview but are no longer loaded.
 - Synrail recording and poster: the public `USBVadik/synrail` false-green demo.
 - OneLink Pay screenshot: `https://onelink-pay.vercel.app/`, captured 28 September 2026.
-- TuringVault screenshot: `https://turingvault.dev/`, captured 28 September 2026.
+- TuringVault console screenshot: `https://turingvault.dev/`, captured 29 September 2026.
+  The frame contains the agent console and signal map; navigation and wallet controls are outside it.
 - RHOOK visual: an explanatory replay diagram, not measured performance.
 - UXmaxx certificate and Mantle Demo Day programme: supplied by the author.
 - Award categories and development notes: URLs are stored with their entries in
