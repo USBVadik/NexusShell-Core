@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RHOOK | NexusShell</title><meta name="description" content="A way to replay onchain execution after changing one declared historical input."><link rel="canonical" href="https://nexusshell.dev/projects/rhook/">
+<meta name="color-scheme" content="light dark"><meta name="theme-color" content="#f7f6f2" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#141618" media="(prefers-color-scheme: dark)">
+<meta property="og:type" content="website"><meta property="og:site_name" content="NexusShell"><meta property="og:title" content="RHOOK | NexusShell"><meta property="og:description" content="A way to replay onchain execution after changing one declared historical input."><meta property="og:url" content="https://nexusshell.dev/projects/rhook/"><meta property="og:image" content="https://nexusshell.dev/assets/media/nexusshell-preview.jpg"><meta property="og:image:alt" content="NexusShell, the projects and ongoing work of Vadik."><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml"><link rel="preload" href="/assets/fonts/manrope-regular.ttf" as="font" type="font/ttf" crossorigin>
+<script>try{const t=localStorage.getItem('nexusshell-theme');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t;}catch(_){}</script>
+<link rel="stylesheet" href="/assets/site.css?v=fcadb1ce42b3"><script defer src="/assets/site.js?v=e8c140962dc2"></script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "WebPage", "name": "RHOOK | NexusShell", "url": "https://nexusshell.dev/projects/rhook/", "isPartOf": {"@type": "WebSite", "name": "NexusShell", "url": "https://nexusshell.dev/"}}</script>
+</head><body class="inner-page"><a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header"><div class="wrap header-inner">
+<a class="brand" href="/" aria-label="NexusShell home"><span class="brand-mark" aria-hidden="true">n</span>nexusshell</a>
+<nav class="primary-nav" aria-label="Main navigation"><a href="/projects/" aria-current="page">Projects</a><a href="/about/">About</a><a href="/updates/">Updates</a><a href="https://github.com/USBVadik" class="" rel="noopener noreferrer" target="_blank">GitHub<span class="arrow" aria-hidden="true">↗</span></a></nav>
+<label class="sr-only" for="theme">Appearance</label><select class="theme-control" id="theme" data-theme-select hidden><option value="system">System</option><option value="light">Light</option><option value="dark">Dark</option></select>
+</div></header><main id="main" class="wrap"><section class="page-intro"><a class="breadcrumb" href="/projects/">← All projects</a><h1>RHOOK</h1><p class="lede">A way to replay onchain execution after changing one declared historical input.</p><div class="project-meta"><span class="ongoing">Ongoing</span><span>Research implementation</span><span>Execution & verification</span></div></section>
+<figure><div class="hero-media "><div class="branch-figure"><svg viewBox="0 0 490 220" role="img" aria-label="RHOOK replay model: an original branch A, B, X, C, D is compared with a branch where X is changed and C and D are recomputed.">
+<text class="label" x="20" y="25">Historical execution</text><text class="label accent-text" x="20" y="205">Replay after one changed input</text>
+<path class="track" d="M45 70H445"/><path class="changed-track" d="M145 70C195 70 190 149 245 149H445"/>
+<rect class="node" x="23" y="48" width="44" height="44" rx="8"/><text x="45" y="76" text-anchor="middle">A</text>
+<rect class="node" x="123" y="48" width="44" height="44" rx="8"/><text x="145" y="76" text-anchor="middle">B</text>
+<rect class="node" x="223" y="48" width="44" height="44" rx="8"/><text x="245" y="76" text-anchor="middle">X</text>
+<rect class="node" x="323" y="48" width="44" height="44" rx="8"/><text x="345" y="76" text-anchor="middle">C</text>
+<rect class="node" x="423" y="48" width="44" height="44" rx="8"/><text x="445" y="76" text-anchor="middle">D</text>
+<rect class="changed-node" x="223" y="127" width="44" height="44" rx="8"/><text class="accent-text" x="245" y="155" text-anchor="middle">X′</text>
+<rect class="changed-node" x="323" y="127" width="44" height="44" rx="8"/><text class="accent-text" x="345" y="155" text-anchor="middle">C′</text>
+<rect class="changed-node" x="423" y="127" width="44" height="44" rx="8"/><text class="accent-text" x="445" y="155" text-anchor="middle">D′</text>
+</svg></div></div><figcaption>A schematic of the replay model. The changed branch regenerates downstream execution; these are not benchmark results.</figcaption></figure>
+<div class="case-layout"><article class="prose">
+<h2>One change, then what?</h2>
+<p>Suppose one input in a historical blockchain execution had been different. Finding dependent transactions is a useful start, but it does not tell you whether those transactions would succeed, revert, or become invalid.</p>
+<p>RHOOK executes the remaining transactions against the state produced by the changed branch. It records where the two histories first differ and enough evidence to explain the difference.</p>
+<h2>What the replay keeps fixed</h2>
+<p>The starting checkpoint, historical context, and transaction order are declared. One intervention changes the branch. Subsequent execution results and states are then regenerated.</p>
+<p>The transcript records transaction identity, state commitments, execution status, fees, logs, and semantic values tied to a particular state. A separate verifier checks the relationships inside that record.</p>
+<h2>The current work</h2>
+<p>The repository has a small protocol-neutral example and a pinned Robinhood Chain v4 replay over 50 continuous blocks. Recent work has focused on reproducing that example on a clean Linux setup and making the verifier stricter about malformed evidence.</p>
+<p>The Robinhood example changes a declared input while keeping the historical envelope for alignment. Its documentation explains that analytical boundary and the limits of the reproduction.</p>
+<h2>Still a research implementation</h2>
+<p>The current implementation is single-target and does not authenticate the transcript producer. It is not a production certification or a system for assigning liability. The repository keeps those boundaries explicit.</p>
+<p>A separate historical Alchemix study informed this line of work. Its reported results are not presented as a benchmark of the current evidence stack.</p>
+<h2>Changes along the way</h2><ul class="case-updates"><li><time datetime="2026-09-24">24 Sep 2026</time><a href="https://github.com/USBVadik/rhook/commit/c6bf3e397864bb506100917c5b9a1aba6328132b" class="" rel="noopener noreferrer" target="_blank">A reproducible replay on Robinhood Chain<span class="arrow" aria-hidden="true">↗</span></a></li><li><time datetime="2026-09-16">16 Sep 2026</time><a href="https://github.com/USBVadik/rhook/commit/1e7afa25f3b2aad673938ddcc417dbb8755ca41e" class="" rel="noopener noreferrer" target="_blank">Tighter checks on execution evidence<span class="arrow" aria-hidden="true">↗</span></a></li></ul></article><aside class="case-aside"><h2>Explore the project</h2><ul><li><a href="https://github.com/USBVadik/rhook" class="" rel="noopener noreferrer" target="_blank">GitHub<span class="arrow" aria-hidden="true">↗</span></a></li><li><a href="https://github.com/USBVadik/rhook/blob/main/QUICKSTART.md" class="" rel="noopener noreferrer" target="_blank">Quickstart<span class="arrow" aria-hidden="true">↗</span></a></li><li><a href="https://github.com/USBVadik/rhook/blob/main/docs/counterfactual-model.md" class="" rel="noopener noreferrer" target="_blank">Counterfactual model<span class="arrow" aria-hidden="true">↗</span></a></li><li><a href="https://github.com/USBVadik/rhook/tree/main/examples/robinhood-v4" class="" rel="noopener noreferrer" target="_blank">Robinhood example<span class="arrow" aria-hidden="true">↗</span></a></li><li><a href="https://github.com/USBVadik/rhook/blob/main/docs/limitations.md" class="" rel="noopener noreferrer" target="_blank">Current limitations<span class="arrow" aria-hidden="true">↗</span></a></li></ul><p>Current focus: reproducible execution examples and independently checked evidence.</p><span class="aside-label">Part of</span><span class="aside-value">NexusShell / Vadik</span></aside></div>
+<a class="next-project" href="/projects/onelink-pay/"><div><small>Another project</small><span>OneLink Pay</span></div><span aria-hidden="true">↗</span></a></main><footer class="site-footer" id="contact"><div class="wrap">
+<div class="contact-row"><div><h2>Have something<br>in mind?</h2><p>A question, an idea, or something worth building.</p></div>
+<div class="contact-links"><a href="https://github.com/USBVadik" class="" rel="noopener noreferrer" target="_blank">GitHub<span class="arrow" aria-hidden="true">↗</span></a><a href="https://x.com/a_seven_life" class="" rel="noopener noreferrer" target="_blank">Say hello on X<span class="arrow" aria-hidden="true">↗</span></a></div></div>
+<div class="footer-bottom"><p>NexusShell <span aria-hidden="true">/</span> Vadik</p><p><a href="/updates/">Updates from the work</a></p></div>
+</div></footer></body></html>
