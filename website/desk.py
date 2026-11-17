@@ -1,10 +1,13 @@
 """The interactive project desk. All project content is present without JavaScript."""
+from second_unit import render_home_panel
 
 
 def render(projects, updates, visual):
     links = []
     marks = ['S', 'R', '1', 'T']
     for i, p in enumerate(projects):
+        if i == 2:
+            links.append('<a class="shelf-project" href="#second-unit" data-project-link="second-unit" aria-controls="second-unit"><span class="project-monogram" aria-hidden="true">2</span><span><strong>Second Unit</strong><small>AI filmmaking</small></span><span class="shelf-arrow" aria-hidden="true">↗</span></a>')
         group = '<p class="shelf-label">In progress</p>' if i == 0 else '<p class="shelf-label shelf-divider">Applications</p>' if i == 2 else ''
         links.append(f'''{group}<a class="shelf-project" href="#{p['slug']}" data-project-link="{p['slug']}" aria-controls="{p['slug']}"><span class="project-monogram mark-{p['slug']}" aria-hidden="true">{marks[i]}</span><span><strong>{p['name']}</strong><small>{p['kind']}</small></span><span class="shelf-arrow" aria-hidden="true">↗</span></a>''')
 
@@ -63,7 +66,7 @@ def render(projects, updates, visual):
 <a class="desk-development" href="/projects/turingvault/"><span class="development-label">Mantle Turing Test<small>2026</small></span><span>Project Deployment Award &amp; Demo Day</span><span aria-hidden="true">↗</span></a></section>'''
 
     return f'''<div id="top"></div><div class="desk-intro"><h1>Vadik’s project desk<span class="desk-intro-dot" aria-hidden="true">.</span></h1><p>Open a project. Follow the work.</p></div>
-<span id="technology" class="legacy-anchor"></span><div class="project-desk" id="work"><aside class="project-shelf"><div class="shelf-bio"><span class="shelf-handle">USBVadik</span><p>I build with agents.<br>And work on ways<br>to check their work.</p><a href="/about/">A little about me <span aria-hidden="true">↗</span></a></div><nav class="project-switcher" aria-label="Choose a project">{''.join(links)}</nav><div class="shelf-bottom"><a href="/projects/agent-automation/">The earlier bot experiments ↗</a><a href="/projects/">All projects ↗</a></div></aside><div class="desk-canvas">{synrail}{rhook}{onelink}{turing}</div></div>
+<span id="technology" class="legacy-anchor"></span><div class="project-desk" id="work"><aside class="project-shelf"><div class="shelf-bio"><span class="shelf-handle">USBVadik</span><p>I build with agents.<br>And work on ways<br>to check their work.</p><a href="/about/">A little about me <span aria-hidden="true">↗</span></a></div><nav class="project-switcher" aria-label="Choose a project">{''.join(links)}</nav><div class="shelf-bottom"><a href="/projects/agent-automation/">The earlier bot experiments ↗</a><a href="/projects/">All projects ↗</a></div></aside><div class="desk-canvas">{synrail}{rhook}{render_home_panel()}{onelink}{turing}</div></div>
 <div class="desk-colophon" id="transparency"><p>Built over time, from Telegram bots to agent tooling and onchain experiments.</p><a href="/updates/" id="updates">Development notes ↗</a></div>
 <div class="legacy-anchor" id="demo"></div><div class="legacy-anchor" id="run"></div><div class="legacy-anchor" id="why"></div><div class="legacy-anchor" id="use"></div>
 <dialog class="demo-dialog" id="synrail-demo-dialog" aria-labelledby="demo-dialog-title"><div class="dialog-heading"><h2 id="demo-dialog-title">Synrail / the original recording</h2><button type="button" data-close-demo aria-label="Close demo">Close <span aria-hidden="true">×</span></button></div>{visual(projects[0], True)}<p>A recorded run from the public repository. <a href="/synrail/#demo-transcript">Read the transcript</a></p></dialog>'''
