@@ -5,6 +5,71 @@ SUMMARY = 'An agentic film crew, from brief to final cut.'
 DESCRIPTION = ('Plan shots, review takes, assemble the edit, and carry what worked '
                'into the next film. You approve the creative decisions along the way.')
 
+AUTHOR_NAME = 'Vadik'
+AUTHOR_ROLE = 'Creator of Second Unit'
+AUTHOR_CONTACTS = [
+    ('GitHub', 'https://github.com/USBVadik'),
+    ('X', 'https://x.com/a_seven_life'),
+    ('Alternate email', 'mailto:applevadik@gmail.com'),
+]
+AUTHOR_WORK_CONTACT = 'mailto:vadik@nexusshell.dev'
+
+BABELSBERG_TRACK = (
+    'I’m preparing for the Studio Babelsberg track because its focus on physical '
+    'contact, stable backgrounds and character continuity matches the checks '
+    'I use to review shots.'
+)
+
+BABELSBERG_CHECKS = [
+    {
+        'problem': 'Floating actors',
+        'check': 'Check where feet meet the support surface and whether the contact shadow holds through the motion.',
+        'example': 'A mascot take was rejected because its feet never met the tabletop, even though the movement looked plausible.',
+        'link': ('Read the physical-contact breakdown', '#physical-contact'),
+    },
+    {
+        'problem': 'Stuttering backgrounds',
+        'check': 'Anchor each location to the shot’s camera position and tilt. Review vertical lines and fixed landmarks through the take.',
+        'example': 'A loft reference taken straight on made a tilted shot look wrong. The next pass used a location reference from the same angle as the shot.',
+    },
+    {
+        'problem': 'Characters that change between shots',
+        'check': 'Build each shot from the same read-only character master. Review defining traits against the character canon.',
+        'example': 'In Lawn Wars, look for the rider’s moustache and sunglasses in a close-up and a wider shot.',
+        'frames': [
+            ('lawn-continuity-close.jpg', '00:12 · Close-up', 'Close-up of the rider in sunglasses with a horseshoe moustache.'),
+            ('lawn-continuity-wide.jpg', '01:00 · Wide shot', 'The same rider in sunglasses and a blue shirt on his red mower.'),
+        ],
+    },
+]
+
+# Add the approved first and revised frames here when they are supplied.
+# Each frame has src, alt, width, and height.
+PHYSICAL_CONTACT_FRAMES = {}
+PHYSICAL_CONTACT_STATES = [
+    ('before', 'Before · First take', 'The mascot’s feet hang in the air above the table.'),
+    ('after', 'After · Revised take', 'Both feet rest on the tabletop and cast a contact shadow.'),
+]
+
+# Snapshot from the Numbers section of PRODUCT_PAGE_EN.md.
+PRODUCTION_NUMBERS = [
+    ('67', 'Recorded failures', 'Across 6 projects and 28 symptom types.'),
+    ('44', 'Numbered review checks', 'Plus a separate axis check.'),
+    ('23', 'A/B taste pairs', 'Side-by-side examples used to calibrate reviews.'),
+    ('1,451', 'Verified generations', '1,005 images, 295 Omni videos and 151 Veo videos.'),
+]
+REGISTRY_DETAILS = [
+    ('Planned jobs', '2,064'),
+    ('Shot IDs', '341'),
+    ('Safety blocks', '52 recorded, with none resubmitted'),
+    ('Failures found', '41 by the author and 26 by agents'),
+    ('Fix outcomes', '46 worked, 13 partly worked, 5 failed, 3 untested'),
+    ('Golden references', '20 shots plus one meme remake'),
+    ('Reference library for analysis', '218 film frames, 86 AI-creator works and 13 reels'),
+    ('Automated tests', '556'),
+    ('Lawn Wars cost per finished second', 'About $1.90, registry estimate'),
+]
+
 # Add only films selected by the author for this page. Required public fields:
 # id, title, src, poster, preview, width, height, duration, caption, audio.
 # Media files must be website derivatives, never originals or private references.
@@ -140,5 +205,3 @@ ADAPTERS = [
     ('Masters & keyframes', 'FLUX adapter', 'Planned'),
 ]
 FLUX_PLAN = 'The planned first step is a FLUX adapter for character masters and keyframes, followed by a comparison on the same approved references with the same reviewers and budget limits. A competition entry would need to use FLUX for all image and video generation, following the programme rules.'
-CLOSING = ['Built as a working production environment.',
-           'Developed through films, revisions and recorded feedback.']

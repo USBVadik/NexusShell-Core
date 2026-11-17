@@ -2,8 +2,11 @@
 from html import escape as e
 from second_unit_content import (TITLE, SUMMARY, DESCRIPTION, FILMS, STAGES,
                                 REVIEWERS, MEMORY, CRAFT_NOTE, CASE, MEMORY_NOTE,
-                                RECORDS, ENGINES_INTRO, ADAPTERS, FLUX_PLAN, CLOSING,
-                                STUDY_MEDIA)
+                                RECORDS, ENGINES_INTRO, ADAPTERS, FLUX_PLAN,
+                                STUDY_MEDIA, AUTHOR_NAME, AUTHOR_ROLE, AUTHOR_CONTACTS,
+                                AUTHOR_WORK_CONTACT, BABELSBERG_TRACK, BABELSBERG_CHECKS,
+                                PHYSICAL_CONTACT_FRAMES, PHYSICAL_CONTACT_STATES,
+                                PRODUCTION_NUMBERS, REGISTRY_DETAILS)
 
 
 def process(prefix, compact=False):
@@ -61,6 +64,86 @@ def render_catalog_entry():
     return f'''<a class="su-catalog-entry" href="/second-unit/"><div><span class="su-catalog-label">Ongoing / AI filmmaking</span><h3>Second Unit <span aria-hidden="true">↗</span></h3><p>{SUMMARY}</p></div><div class="su-catalog-method">Brief <span>→</span> Shots <span>→</span> Review <span>→</span> Cut <span>↶</span></div></a>'''
 
 
+def author_section():
+    links = ''.join(
+        f'<li><a href="{e(url, quote=True)}">{e(label)}</a></li>'
+        for label, url in AUTHOR_CONTACTS
+    )
+    return f'''<section class="su-section su-author" id="who-builds-it" aria-labelledby="su-author-heading">
+<div class="su-section-heading"><h2 id="su-author-heading">Who builds it</h2></div>
+<div class="su-author-body">
+  <div>
+    <h3>{e(AUTHOR_NAME)}</h3><p class="su-author-role">{e(AUTHOR_ROLE)}</p>
+    <p>I build the production workflow and direct the films. I’ve taken part in Encode Club hackathons, including UXmaxx, where <a href="/projects/onelink-pay/">OneLink Pay</a> won the Magic Labs Bonus Challenge.</p>
+  </div>
+  <div class="su-author-contact">
+    <a class="su-action" href="{e(AUTHOR_WORK_CONTACT, quote=True)}">Talk about the workflow <span aria-hidden="true">↗</span></a>
+    <p class="su-author-email">{e(AUTHOR_WORK_CONTACT.removeprefix('mailto:'))}</p>
+    <ul aria-label="Vadik’s public profiles and contact">{links}</ul>
+  </div>
+</div>
+</section>'''
+
+
+def physical_contact_section():
+    states = []
+    for stage, label, note in PHYSICAL_CONTACT_STATES:
+        frame = PHYSICAL_CONTACT_FRAMES.get(stage)
+        visual = ''
+        if frame:
+            visual = (f'<img src="{e(frame["src"], quote=True)}" width="{int(frame["width"])}" '
+                      f'height="{int(frame["height"])}" loading="lazy" alt="{e(frame["alt"], quote=True)}">')
+        states.append(f'<div><dt>{e(label)}</dt><dd>{visual}{e(note)}</dd></div>')
+    return f'''<section class="su-physical" id="physical-contact" aria-labelledby="su-physical-heading">
+<h3 id="su-physical-heading">Physical contact, before and after</h3>
+<dl class="su-physical-pair">{''.join(states)}</dl>
+</section>'''
+
+
+def babelsberg_section():
+    rows = []
+    for item in BABELSBERG_CHECKS:
+        example_link = ''
+        if item.get('link'):
+            label, url = item['link']
+            example_link = f'<a href="{e(url, quote=True)}">{e(label)} <span aria-hidden="true">↓</span></a>'
+        figures = ''.join(
+            f'<figure><a href="/assets/media/second-unit/{e(filename, quote=True)}">'
+            f'<img src="/assets/media/second-unit/{e(filename, quote=True)}" width="270" height="480" '
+            f'loading="lazy" alt="{e(alt, quote=True)}"></a><figcaption>{e(label)}</figcaption></figure>'
+            for filename, label, alt in item.get('frames', ())
+        )
+        stills = f'<div class="su-continuity-stills">{figures}</div>' if figures else ''
+        rows.append(f'''<article class="su-brief-row">
+<h3>{e(item['problem'])}</h3>
+<div><p class="su-brief-label">Review check</p><p>{e(item['check'])}</p></div>
+<div><p class="su-brief-label">From production</p><p>{e(item['example'])}</p>{example_link}{stills}</div>
+</article>''')
+    return f'''<section class="su-section" id="babelsberg" aria-labelledby="su-babelsberg-heading">
+<div class="su-section-heading"><h2 id="su-babelsberg-heading">Built for the hard problems</h2><p>{e(BABELSBERG_TRACK)}</p></div>
+<div class="su-brief-checks">{''.join(rows)}</div>
+{physical_contact_section()}
+</section>'''
+
+
+def numbers_section():
+    numbers = ''.join(
+        f'<div><dt>{e(label)}</dt><dd><strong>{e(number)}</strong><span>{e(note)}</span></dd></div>'
+        for number, label, note in PRODUCTION_NUMBERS
+    )
+    details = ''.join(
+        f'<div><dt>{e(label)}</dt><dd>{e(value)}</dd></div>'
+        for label, value in REGISTRY_DETAILS
+    )
+    return f'''<section class="su-section" id="numbers" aria-labelledby="su-numbers-heading">
+<div class="su-section-heading"><h2 id="su-numbers-heading">Numbers</h2><p>A snapshot from the project’s production registry and review files.</p></div>
+<dl class="su-numbers">{numbers}</dl>
+<details class="su-contact-sheet su-registry"><summary>More from the registry <span aria-hidden="true">+</span></summary>
+<dl>{details}</dl>
+</details>
+</section>'''
+
+
 def render_page():
     film_link = '<a class="su-action" href="#films">Watch the films <span aria-hidden="true">↘</span></a>' if FILMS else ''
     reviewers = ''.join(f'''<details class="su-reviewer"><summary><span class="su-reviewer-role">{e(role)}<small>{e(code)}</small></span><span>{e(question)}</span><span class="su-expand" aria-hidden="true">+</span></summary><p>{e(body)}</p></details>''' for role, code, question, body in REVIEWERS)
@@ -70,17 +153,18 @@ def render_page():
     before_copy = ''.join(f'<p>{e(p)}</p>' for p in RECORDS['before'])
     records = ''.join(f'<li>{e(item)}</li>' for item in RECORDS['after'])
     adapters = ''.join(f'<div class="{"su-planned" if status == "Planned" else ""}"><dt>{e(role)}</dt><dd>{e(model)}</dd><span>{e(status)}</span></div>' for role, model, status in ADAPTERS)
-    closing = '<br>'.join(e(line) for line in CLOSING)
     hero_art = previews() or '<div class="su-frame-art" aria-hidden="true"><div class="su-art-frame su-art-frame-back"></div><div class="su-art-frame su-art-frame-front"><span class="su-art-corner su-art-corner-tl"></span><span class="su-art-corner su-art-corner-tr"></span><span class="su-art-number">02</span><span class="su-art-corner su-art-corner-bl"></span><span class="su-art-corner su-art-corner-br"></span><span class="su-art-cross"></span></div><span class="su-art-arrow">↶</span></div>'
     return f'''<article class="su-page">
 <nav class="su-breadcrumb" aria-label="Breadcrumb"><a href="/">NexusShell</a><span aria-hidden="true">/</span><span>Second Unit</span></nav>
-<header class="su-hero"><div><p class="su-byline"><span class="su-byline-mark" aria-hidden="true">02</span> AI filmmaking / Ongoing work</p><h1>Second <span class="su-title-unit">Unit</span></h1><p class="su-headline">{SUMMARY}</p><p class="su-intro">{DESCRIPTION}</p><div class="su-actions">{film_link}<a class="su-action" href="#workflow">Explore the workflow <span aria-hidden="true">↘</span></a></div></div><figure class="su-production-art"><div class="su-art-caption"><span>Second Unit</span><span>{'Film excerpts' if FILMS else 'The working method'}</span></div>{hero_art}<figcaption><p>Plan the scene.<br>Review the take.<br><span>Remember the correction.</span></p><span>Creative decisions stay with the director.</span></figcaption></figure></header>
+<header class="su-hero"><div><p class="su-byline"><span class="su-byline-mark" aria-hidden="true">02</span><span>AI filmmaking · <a href="#who-builds-it">Built by {e(AUTHOR_NAME)}</a></span></p><h1>Second <span class="su-title-unit">Unit</span></h1><p class="su-headline">{SUMMARY}</p><p class="su-intro">{DESCRIPTION}</p><div class="su-actions">{film_link}<a class="su-action" href="#workflow">Explore the workflow <span aria-hidden="true">↘</span></a></div></div><figure class="su-production-art"><div class="su-art-caption"><span>Second Unit</span><span>{'Film excerpts' if FILMS else 'The working method'}</span></div>{hero_art}<figcaption><p>Plan the scene.<br>Review the take.<br><span>Remember the correction.</span></p><span>Creative decisions stay with the director.</span></figcaption></figure></header>
 {films()}
+{babelsberg_section()}
 <section class="su-section su-workflow" id="workflow"><div class="su-section-heading"><h2>From brief to delivery.</h2><p>Character masters, scene maps, review checklists and edit scripts give each generation a place in the film. Explore what each stage uses and leaves behind.</p></div>{process('production')}</section>
 <section class="su-section" id="review"><div class="su-section-heading"><h2>Review is part of the workflow.</h2><p>Separate reviewer agents inspect the work. The director approves the keyframes and the cut before accepted takes move to delivery.</p></div><div class="su-reviewers">{reviewers}</div><p class="su-craft-note">{e(CRAFT_NOTE)}</p></section>
 <section class="su-section" id="learning"><div class="su-section-heading"><h2>The colour check passed.<br>The director sent it back.</h2><p>{e(CASE['intro'])}</p></div><div class="su-case"><div class="su-case-label"><span>Production note</span><strong>{e(CASE['title'])}</strong><span>{e(CASE['version'])}</span></div><div class="su-case-story">{case_copy}<div class="su-rule"><span>The rule that changed</span><h3>{rule_title}</h3><p>{e(CASE['rule'])}</p></div></div></div>{colour_study()}
 <div class="su-memory"><h3>What the next film remembers.</h3><ol>{memory}</ol><p class="su-memory-note">{e(MEMORY_NOTE)}</p></div></section>
 {upscale_study()}<section class="su-section" id="records"><div class="su-section-heading"><h2>Keep the production inspectable.</h2><p>{e(RECORDS['intro'])}</p></div><div class="su-record-grid"><div><h3>Before a job runs</h3>{before_copy}</div><div><h3>After a take is accepted</h3><ul>{records}</ul><p>{e(RECORDS['conclusion'])}</p></div></div></section>
+{numbers_section()}
 <section class="su-section su-engines" id="engines"><div class="su-section-heading"><h2>Current engines.<br>Next: FLUX.</h2><p>{e(ENGINES_INTRO)}</p></div><dl class="su-adapters">{adapters}</dl><p class="su-engine-note">{e(FLUX_PLAN)}</p><a class="su-text-link" href="https://www.encodeclub.com/programmes/bfl-flux-in-production" target="_blank" rel="noopener noreferrer">FLUX: In Production programme <span aria-hidden="true">↗</span></a></section>
-<div class="su-closing"><p>{closing}</p><a href="https://x.com/a_seven_life" class="su-text-link">Talk about the workflow <span aria-hidden="true">↗</span></a></div>
+{author_section()}
 </article>'''
