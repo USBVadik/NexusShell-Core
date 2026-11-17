@@ -25,5 +25,10 @@
 @media(prefers-reduced-motion:reduce){.home-page *, .home-page *:before,.home-page *:after{animation:none!important;transition:none!important}}.home-page[data-input=keyboard] *{transition:none!important}
 
 .trace-node>small{position:relative;z-index:2;padding-inline:4px;background:var(--desk-plot)}
+
+.project-desk, .project-shelf { background-image: var(--film-grain); }
+@media (min-width: 741px) {
+  .desk-intro h1 { font-size: clamp(25px, 2.5vw, 32px); }
+}
 .branch-node:disabled{cursor:default}
 @media(max-width:740px){.proof-steps button,.replay-mode-switch button,.vault-stages button{min-height:44px}.home-page input[type=range]{min-height:40px}.branch-node{width:34px;height:34px}.branch-track{min-height:34px}.branch-track:before{top:17px}.branch-connector{bottom:17px}}
