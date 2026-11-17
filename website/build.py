@@ -6,6 +6,7 @@ import json
 from hashlib import sha256
 from content import PROJECTS, UPDATES
 from desk import render as render_desk
+from second_unit import render_page as render_second_unit, render_catalog_entry
 
 ROOT = Path(__file__).resolve().parent.parent
 BASE = 'https://nexusshell.dev'
@@ -49,17 +50,26 @@ def page(path, title, description, body, active='', schema=None):
     structured = schema or {'@context': 'https://schema.org', '@type': 'WebPage', 'name': title, 'url': canonical,
                            'isPartOf': {'@type': 'WebSite', 'name': 'NexusShell', 'url': BASE + '/'}}
     desk_assets = f'<link rel="stylesheet" href="{asset("/assets/desk.css")}"><script defer src="{asset("/assets/desk.js")}"></script>' if path == '/' else ''
-    page_footer = '<footer class="desk-footer" id="contact"><span>NexusShell / Vadik</span><div><a href="https://github.com/USBVadik">GitHub ↗</a><a href="https://x.com/a_seven_life">Say hello on X ↗</a></div></footer>' if path == '/' else footer()
+    if path in ['/', '/second-unit/', '/projects/']:
+        desk_assets += f'<link rel="stylesheet" href="{asset("/assets/second-unit.css")}">'
+    if path in ['/', '/second-unit/']:
+        desk_assets += f'<script defer src="{asset("/assets/second-unit.js")}"></script>'
+    body_class = 'home-page' if path == '/' else 'inner-page second-unit-page' if path == '/second-unit/' else 'inner-page'
+    page_footer = '<footer class="desk-footer" id="contact"><span>NexusShell / Vadik</span><div><a href="https://github.com/USBVadik">GitHub ↗</a><a href="https://x.com/a_seven_life">Say hello on X ↗</a></div></footer>' if path in ['/', '/second-unit/'] else footer()
+    if path == '/second-unit/':
+        page_footer = page_footer.replace('NexusShell / Vadik', 'Second Unit / NexusShell')
+    preview_image = 'second-unit-preview.jpg' if path == '/second-unit/' else 'nexusshell-preview.jpg'
+    preview_alt = 'Second Unit, an agentic film production workflow.' if path == '/second-unit/' else 'NexusShell, the projects and ongoing work of Vadik.'
     text = f'''<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{e(title)}</title><meta name="description" content="{e(description, quote=True)}"><link rel="canonical" href="{canonical}">
 <meta name="color-scheme" content="light dark"><meta name="theme-color" content="#f7f6f2" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#141618" media="(prefers-color-scheme: dark)">
-<meta property="og:type" content="website"><meta property="og:site_name" content="NexusShell"><meta property="og:title" content="{e(title, quote=True)}"><meta property="og:description" content="{e(description, quote=True)}"><meta property="og:url" content="{canonical}"><meta property="og:image" content="{BASE}/assets/media/nexusshell-preview.jpg"><meta property="og:image:alt" content="NexusShell, the projects and ongoing work of Vadik."><meta name="twitter:card" content="summary_large_image">
+<meta property="og:type" content="website"><meta property="og:site_name" content="NexusShell"><meta property="og:title" content="{e(title, quote=True)}"><meta property="og:description" content="{e(description, quote=True)}"><meta property="og:url" content="{canonical}"><meta property="og:image" content="{BASE}/assets/media/{preview_image}"><meta property="og:image:alt" content="{e(preview_alt, quote=True)}"><meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml"><link rel="preload" href="/assets/fonts/manrope-regular.ttf" as="font" type="font/ttf" crossorigin>
 <script>try{{const t=localStorage.getItem('nexusshell-theme');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t;}}catch(_){{}}</script>
 <link rel="stylesheet" href="{asset('/assets/site.css')}"><script defer src="{asset('/assets/site.js')}"></script>
 {desk_assets}<script type="application/ld+json">{json.dumps(structured, ensure_ascii=False).replace('<', chr(92)+'u003c')}</script>
-</head><body class="{'home-page' if path == '/' else 'inner-page'}">{header(active)}<main id="main" class="wrap">{body}</main>{page_footer}</body></html>
+</head><body class="{body_class}">{header(active)}<main id="main" class="wrap">{body}</main>{page_footer}</body></html>
 '''
     dest = ROOT / (path.strip('/') + '/index.html' if path != '/' else 'index.html')
     dest.parent.mkdir(parents=True, exist_ok=True)
@@ -107,12 +117,16 @@ def other_card(project):
 
 
 def home():
-    page('/', 'NexusShell | Vadik’s project desk', 'Explore the work of Vadik: Synrail, RHOOK, OneLink Pay and TuringVault, with interactive walkthroughs, source code and development notes.', render_desk(PROJECTS, UPDATES, visual))
+    page('/', 'NexusShell | Vadik’s project desk', 'Explore Synrail, RHOOK, Second Unit, OneLink Pay and TuringVault: agent tools, AI filmmaking and onchain experiments, with walkthroughs and development notes.', render_desk(PROJECTS, UPDATES, visual))
+
+
+def second_unit():
+    page('/second-unit/', 'Second Unit | Agentic film production | NexusShell', 'An agentic film crew, from brief to final cut. Shot planning, review, editing and a learning loop built from production feedback.', render_second_unit())
 
 
 def catalog():
     body = f'''<section class="page-intro"><a class="breadcrumb" href="/">NexusShell</a><h1>Projects</h1><p class="lede">The tools and applications I’ve been working on, with source code, examples, and some context.</p></section>
-<section class="section first-section catalog-section"><h2 class="catalog-label">Ongoing</h2><div class="work-grid">{''.join(current_card(p) for p in PROJECTS[:2])}</div></section>
+<section class="section first-section catalog-section"><h2 class="catalog-label">Ongoing</h2><div class="work-grid">{''.join(current_card(p) for p in PROJECTS[:2])}</div>{render_catalog_entry()}</section>
 <section class="section catalog-section"><h2 class="catalog-label">Applications &amp; experiments</h2><div class="other-grid">{''.join(other_card(p) for p in PROJECTS[2:])}</div>
 <div class="origin-row"><p>Telegram bots and agent automation, where the hands-on work began.</p><a href="/projects/agent-automation/">Early work <span class="arrow" aria-hidden="true">↗</span></a></div></section>'''
     page('/projects/', 'Projects | NexusShell', 'Ongoing tools, onchain applications, and agent automation by Vadik.', body, 'Projects')
@@ -211,5 +225,6 @@ if __name__ == '__main__':
     updates_page()
     automation_page()
     product_page()
+    second_unit()
     finish()
     print(f'Built {len(PAGES)-1} pages plus 404.html. No runtime dependencies.')

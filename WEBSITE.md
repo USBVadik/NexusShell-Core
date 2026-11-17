@@ -17,6 +17,9 @@ Open `http://127.0.0.1:4173/`. Stop the server with Ctrl+C.
 - `website/content.py`: project descriptions, source links, and dated updates.
 - `website/build.py`: shared layouts, navigation, About, and Synrail product copy.
 - `website/desk.py`: the interactive home and its project-specific walkthroughs.
+- `website/second_unit_content.py`: Second Unit copy, workflow stages, and selected-film list.
+- `website/second_unit.py`: its product page, home panel, and catalog entry.
+- `assets/second-unit.css` and `assets/second-unit.js`: scoped presentation and workflow controls.
 - `assets/desk.css` and `assets/desk.js`: home styles and interaction state.
 - `assets/site.css`: shared styles and light/dark themes.
 - `assets/site.js`: appearance preference, command copying, the demo dialog,
@@ -45,7 +48,7 @@ existing public GitHub and X profiles; no hiring availability or email is invent
 ## Routes
 
 `/`, `/projects/`, four main project cases, `/projects/agent-automation/`, `/about/`,
-`/updates/`, and `/synrail/`. `404.html` provides a recovery page.
+`/updates/`, `/synrail/`, and `/second-unit/`. `404.html` provides a recovery page.
 
 `/synrail.html` redirects to `/synrail/` and preserves its hash with JavaScript.
 Old home anchors `#demo`, `#run`, `#why`, and `#use` lead to the corresponding Synrail
@@ -67,7 +70,7 @@ sections. The home also retains `#top`, `#technology`, `#transparency`, and `#co
 - `nexusshell-preview.jpg`: a screenshot of this site for link previews.
 
 The visual direction and interaction decisions are recorded in `website/DESIGN.md`.
-The home keeps all four project panels in HTML. JavaScript selects the panel from
+The home keeps all five project panels in HTML. JavaScript selects the panel from
 its URL hash and enables the walkthroughs; without it, project content remains in
 document order. Synrail uses a recorded example, RHOOK a conceptual replay model,
 OneLink Pay a local calculation of one permission limit, and TuringVault a workflow
@@ -78,6 +81,17 @@ When adding a project, update `PROJECTS` and the home panel/selector in
 `website/desk.py` together. The four walkthroughs are intentionally specific to
 the existing projects, rather than automatically generated from marketing copy.
 Keep labels explicit about whether an example is recorded, conceptual, or live.
+
+Second Unit is an additional ongoing project with its own product page. Its
+records are separate from `PROJECTS`, whose four entries generate the existing
+case pages. The six-stage home walkthrough describes the production method.
+The FLUX adapter is planned. The product has its own social preview image.
+
+The selected-film section is omitted while `FILMS` is empty. Add only author-selected
+web derivatives, with local `src`/`poster`, original aspect ratio (`width`/`height`),
+`title`, `duration`, `caption`, and `audio` description. Rebuild and verify each
+player and local asset before publication. Keep original production files outside
+this repository. Videos use native controls and do not autoplay.
 
 ## Review and publication
 
