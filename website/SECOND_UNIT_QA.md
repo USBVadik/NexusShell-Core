@@ -44,3 +44,31 @@ This is not a full accessibility or performance audit.
 - The hero and framing illustration fit 320px and 768px without overflow. The memory line
   becomes a two-column layout on narrow screens.
 - No films or private production assets were added during this presentation pass.
+
+## Selected media release, 17 November
+
+The owner supplied and explicitly authorized publication of eight selected media
+files. Public derivatives add two complete films, two silent six-second previews,
+a silent upscale study, three original comparison/contact sheets, three posters
+and four extracted frames. Lawn Wars retains generated sound without commercial
+music. Gravity is silent and its fictional news intro is labeled as parody.
+
+- ffprobe confirmed dimensions, codecs, durations and audio streams for all inputs.
+  All five public MP4 files decode fully with ffmpeg -xerror. Their moov atoms
+  precede mdat for progressive playback. Supplied sheets are byte-identical.
+- Static audit: 13 HTML files, 233 local references, no missing files or fragments.
+  Video/image dimensions and alternatives are present. Full films and the study
+  use native controls and preload=none. Hero sources are attached when visible.
+- Preview behavior exercised against the actual script in a focused Node harness:
+  deferred source attachment, play/pause, latest observer sample, hidden document,
+  reduced motion, no IntersectionObserver, and rejected autoplay all passed.
+- Independent review found the finishing-grid auto minimum, generic still alt text,
+  stale observer-sample choice and outdated contributor fields. Corrected all four.
+- Comparison captions distinguish r6/r7/r7b colour passes from the selected final
+  and mark the upscale A/B as an experiment with no final method selected.
+- The product social preview now uses a real frame from the Gravity film.
+
+Current limitation: browser access is unavailable in this chat. The new media
+layout has not been visually rechecked in a browser, and native browser playback
+is not claimed as tested in this release. Codec/decode, script behavior and
+production HTTP checks provide the verification available in this environment.

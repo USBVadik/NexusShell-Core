@@ -53,3 +53,10 @@ Validation uses the builder, a static link audit, JavaScript syntax checks, and 
 - Task 2 complete: home/catalog integration, responsive/browser/static verification, independent review and fixes.
 - Verification: build 11 content pages; 13 HTML documents, 205 local references, no missing targets or fragments; Python/JS syntax and diff checks pass.
 - Ruling: keep this approved draft on its local branch until films are selected and the complete presentation reviewed. No push, PR, merge, or deployment in this step.
+
+## Authorized publication update
+
+The owner subsequently requested publication of the complete product page with
+all selected films and production studies, and delivered the eight media inputs.
+This explicit instruction supersedes the earlier draft-only integration ruling.
+Publish through the existing GitHub Pages branch after file, code and HTTP checks.

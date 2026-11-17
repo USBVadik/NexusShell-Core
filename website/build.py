@@ -58,8 +58,8 @@ def page(path, title, description, body, active='', schema=None):
     page_footer = '<footer class="desk-footer" id="contact"><span>NexusShell / Vadik</span><div><a href="https://github.com/USBVadik">GitHub ↗</a><a href="https://x.com/a_seven_life">Say hello on X ↗</a></div></footer>' if path in ['/', '/second-unit/'] else footer()
     if path == '/second-unit/':
         page_footer = page_footer.replace('NexusShell / Vadik', 'Second Unit / NexusShell')
-    preview_image = 'second-unit-preview.jpg' if path == '/second-unit/' else 'nexusshell-preview.jpg'
-    preview_alt = 'Second Unit, an agentic film production workflow.' if path == '/second-unit/' else 'NexusShell, the projects and ongoing work of Vadik.'
+    preview_image = 'second-unit/gravity-poster.jpg' if path == '/second-unit/' else 'nexusshell-preview.jpg'
+    preview_alt = 'A frame from Gravity turns off on Tuesdays, a Second Unit film.' if path == '/second-unit/' else 'NexusShell, the projects and ongoing work of Vadik.'
     text = f'''<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{e(title)}</title><meta name="description" content="{e(description, quote=True)}"><link rel="canonical" href="{canonical}">

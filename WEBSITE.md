@@ -87,11 +87,21 @@ records are separate from `PROJECTS`, whose four entries generate the existing
 case pages. The six-stage home walkthrough describes the production method.
 The FLUX adapter is planned. The product has its own social preview image.
 
-The selected-film section is omitted while `FILMS` is empty. Add only author-selected
-web derivatives, with local `src`/`poster`, original aspect ratio (`width`/`height`),
-`title`, `duration`, `caption`, and `audio` description. Rebuild and verify each
+The selected-film section uses `SELECTED_FILMS`, exposed as `FILMS`. Add only
+author-selected web derivatives with `id`, `title`, local `src`, `poster` and
+silent six-second `preview`, original aspect ratio (`width`/`height`), `duration`,
+`caption`, and `audio` description. Optional `stills` entries each have `src` and
+descriptive `alt`; `sheet` links to a contact sheet. Rebuild and verify each
 player and local asset before publication. Keep original production files outside
-this repository. Videos use native controls and do not autoplay.
+this repository. Full films and the upscale study use native controls and do not
+autoplay. The two small hero excerpts play silently only while visible, pause
+when hidden, and have a pause control. Reduced-motion preference disables their
+automatic playback; they can still be started explicitly.
+
+The public media live in `assets/media/second-unit/`: two full films, two silent
+previews, a silent upscale comparison, three supplied sheets, three posters and
+four extracted stills. The supplied comparison sheets retain their original
+pixels. The upscale study is an experiment, not an adopted finishing method.
 
 ## Review and publication
 

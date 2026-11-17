@@ -5,10 +5,46 @@ SUMMARY = 'An agentic film crew, from brief to final cut.'
 DESCRIPTION = ('Plan shots, review takes, assemble the edit, and carry what worked '
                'into the next film. You approve the creative decisions along the way.')
 
-# Add only films selected by the author for this page. Public fields:
-# title, src, poster, width, height, duration, caption, audio.
+# Add only films selected by the author for this page. Required public fields:
+# id, title, src, poster, preview, width, height, duration, caption, audio.
 # Media files must be website derivatives, never originals or private references.
-FILMS = []
+# Author-selected website derivatives, inspected before publication.
+SELECTED_FILMS = [
+    {
+        'id': 'lawn', 'title': 'Lawn Wars, pt. 1',
+        'src': '/assets/media/second-unit/lawn-wars.mp4',
+        'poster': '/assets/media/second-unit/lawn-poster.jpg',
+        'preview': '/assets/media/second-unit/lawn-preview.mp4',
+        'width': 720, 'height': 1280, 'duration': '1:06',
+        'audio': 'Generation audio · no music',
+        'caption': 'Two suburban dads turn a 7 a.m. lawn-mowing dispute into a race. A 69-shot comedy built with staged coverage, a versioned edit and a reviewed grade.',
+    },
+    {
+        'id': 'gravity', 'title': 'Gravity turns off on Tuesdays',
+        'src': '/assets/media/second-unit/gravity-tuesdays.mp4',
+        'poster': '/assets/media/second-unit/gravity-poster.jpg',
+        'preview': '/assets/media/second-unit/gravity-preview.mp4',
+        'width': 1280, 'height': 720, 'duration': '0:28',
+        'audio': 'Silent version',
+        'caption': 'A deadpan comedy built around one world rule. The parody news intro uses a fictional presenter to announce that gravity has been switched off in California.',
+        'stills': [
+            {'src': '/assets/media/second-unit/gravity-frame-1.jpg', 'alt': 'A fictional news presenter introduces a gravity outage in California.'},
+            {'src': '/assets/media/second-unit/gravity-frame-2.jpg', 'alt': 'A woman reaches for a floating takeaway cup beside a tilting bus.'},
+            {'src': '/assets/media/second-unit/gravity-frame-3.jpg', 'alt': 'A tethered reporter and camera operator hover above the pavement.'},
+            {'src': '/assets/media/second-unit/gravity-frame-4.jpg', 'alt': 'A woman in pink checks her wrist beside a white picket fence.'},
+        ],
+        'sheet': '/assets/media/second-unit/gravity-shot-sheet.jpg',
+    },
+]
+
+FILMS = SELECTED_FILMS
+
+STUDY_MEDIA = {
+    'colour': '/assets/media/second-unit/colour-passes.jpg',
+    'upscale_video': '/assets/media/second-unit/upscale-study.mp4',
+    'upscale_poster': '/assets/media/second-unit/upscale-poster.jpg',
+    'upscale_crops': '/assets/media/second-unit/upscale-crops.jpg',
+}
 
 STAGES = [
     {
