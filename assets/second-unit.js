@@ -4,12 +4,27 @@
     const buttons = [...process.querySelectorAll('[data-su-step]')];
     const frames = [...process.querySelectorAll('[data-su-frame]')];
     if (!controls || buttons.length !== frames.length || !frames.length) return;
-    function select(index) {
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    let selected = -1;
+    let transition = null;
+    process.addEventListener('keydown', () => { process.dataset.input = 'keyboard'; });
+    process.addEventListener('pointerdown', () => { process.dataset.input = 'pointer'; });
+    function select(index, pointer = false) {
+      if (selected === index) return;
+      transition?.cancel();
+      transition = null;
       buttons.forEach((button, i) => button.setAttribute('aria-pressed', String(i === index)));
       frames.forEach((frame, i) => { frame.hidden = i !== index; });
+      selected = index;
+      if (pointer && !reducedMotion.matches && typeof frames[index].animate === 'function') {
+        transition = frames[index].animate(
+          [{ opacity: .55, transform: 'translateY(5px)' }, { opacity: 1, transform: 'translateY(0)' }],
+          { duration: 180, easing: 'cubic-bezier(.23,1,.32,1)' }
+        );
+      }
     }
     buttons.forEach((button, index) => {
-      button.addEventListener('click', () => select(index));
+      button.addEventListener('click', event => select(index, event.detail > 0));
       button.addEventListener('keydown', event => {
         let next;
         if (event.key === 'ArrowRight' || event.key === 'ArrowDown') next = (index + 1) % buttons.length;

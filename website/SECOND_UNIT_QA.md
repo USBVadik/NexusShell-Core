@@ -29,3 +29,18 @@ Limits: no generated video is running on this website. The source workflow,
 generation providers, budget enforcement and aggregate counts were not audited.
 Film playback and poster loading require another check after selected media is added.
 This is not a full accessibility or performance audit.
+
+## Creative polish, 17 November
+
+- Inspected the new framing graphic in dark desktop and light mobile layouts.
+  Decorative geometry is aria-hidden, and the original text remains readable.
+- Rechecked all six pointer selections: one visible stage, stable 519.6px process
+  height at 1280px, no horizontal overflow. Keyboard Home updates selection and
+  focus immediately with the input mode marked as keyboard.
+- Independent review found the animation cancellation path assumed getAnimations.
+  A local compatibility page reproduced the failure with getAnimations and animate
+  unavailable, then passed after tracking only the owned animation handle.
+  The temporary compatibility page was removed.
+- The hero and framing illustration fit 320px and 768px without overflow. The memory line
+  becomes a two-column layout on narrow screens.
+- No films or private production assets were added during this presentation pass.

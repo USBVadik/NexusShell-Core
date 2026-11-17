@@ -50,3 +50,23 @@ Recognition remains a quiet link to precise categories and supporting evidence.
 No new personal role, award, usage, financial result, or project-status claims were
 introduced. Route slugs, source content, inner pages, and legacy Synrail anchors
 remain available. See QA.md for verification scope and limits.
+
+## Second Unit: creative polish
+
+17 November 2026. The owner asked for a little more character on the film-product
+page after approving its content. The existing portfolio palette, themes and
+information architecture remain the foundation. Dials: DESIGN_VARIANCE 5,
+MOTION_INTENSITY 3, VISUAL_DENSITY 5.
+
+| Before | After | Why |
+| --- | --- | --- |
+| A text-only side note in the opening | A small native framing composition with an 02 mark | Give the production workflow a visual identity before films are selected |
+| Uniform title colour | The same warm accent on Unit and a restrained underline | Make the product name recognisable without introducing another type family |
+| Plain case-study rule | A highlighted production note with a folded corner | Let the specific lesson stand out while reading |
+| Four separate memory columns | Connected numbered nodes on desktop, a compact grid on mobile | Show that recorded feedback travels into the next run |
+| Immediate pointer step replacement | Interruptible 180ms opacity/5px transition | Clarify the selected stage; keyboard changes stay instant |
+
+The framing graphic is decorative native HTML/CSS, not a generated shot, recording
+or claimed production output. It is hidden from assistive technology. There is
+no continuous motion; reduced-motion preferences disable the stage animation.
+Selected films still require the author's media choice.
